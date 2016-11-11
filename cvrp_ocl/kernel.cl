@@ -1,11 +1,10 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-
 #define TRUE true
 #define FALSE false
 
 #define EPSILON 0.001
-
+#define DEBUG(x)   x
 /****** parameters ******/
 #define RHO         0.1
 #define ALPHA       1.0
@@ -89,7 +88,7 @@ inline void print_single_route(int num_node, __global double *distance, __global
 }
 
 /******* construct solutions *********/
-inline int choose_best_next(int phase, int num_node, int *tour,
+inline int choose_best_next(int phase, int num_node, __global int *tour,
                             __global double *total_info, bool *visited, bool *demand_meet)
 {
     int node, current_node, next_node;
@@ -116,7 +115,7 @@ inline int choose_best_next(int phase, int num_node, int *tour,
     return next_node;
 }
 
-inline int choose_and_move_to_next(int phase, int num_node, __global int *rnd_seed, int *tour,
+inline int choose_and_move_to_next(int phase, int num_node, __global int *rnd_seed, __global int *tour,
                                    __global double *total_info, double *prob_ptr,
                                    bool *visited, bool *demand_meet)
 {
@@ -302,41 +301,21 @@ inline void two_opt_single_route(int num_node, __global int *tour, int rbeg, int
 }
 
 /******** pheromone update ********/
-inline void update_pheromone_weighted(int num_node, __global double *pheromone,
-                                      __global int *tour, int tour_size,
-                                      double tour_length, int weight)
-{
-    int      i, j, h;
-    double   d_tau;
+//inline void update_pheromone_weighted(int num_node, __global double *pheromone,
+//                                      __global int *tour, int tour_size,
+//                                      double tour_length, int weight)
+//{
+//    int      i, j, h;
+//    double   d_tau;
+//
+//    d_tau = weight / tour_length;
+//    for (i = 0; i < tour_size - 1; i++) {
+//        j = tour[i];
+//        h = tour[i+1];
+//        pheromone[j * num_node + h] += d_tau;
+//    }
+//}
 
-    d_tau = weight / tour_length;
-    for (i = 0; i < tour_size - 1; i++) {
-        j = tour[i];
-        h = tour[i+1];
-        pheromone[j * num_node + h] += d_tau;
-    }
-}
-
-/*
- * 蚁群停滞时，加入扰动跳出局部最优解
- */
-inline void pheromone_disturbance(int num_node, __global double *pheromone)
-{
-//    printf("begin pheromone disturbance...\n");
-    
-    int i;
-    double mean_pheromone = 0.0;
-    int sz = num_node * num_node;
-    
-    for (i = 0; i < sz; i++) {
-        mean_pheromone += pheromone[i];
-    }
-    mean_pheromone = mean_pheromone / sz;
-    
-    for (i = 0; i < sz; i++) {
-        pheromone[i] = (1- DELTA) * mean_pheromone + DELTA * pheromone[i];
-    }
-}
 
 inline int find_best(int n_ants, __global double *solution_lens)
 {
@@ -366,10 +345,11 @@ __kernel void construct_solution(int num_node, int capacity, double max_dist, do
                                  __global int *rnd_seeds, __global double *distance, __global int *demand,
                                  __global double *total_info, __global int *solutions, __global double *solution_lens)
 {
+//    DEBUG(printf("begin constructing solution\n");)
+    
     int     gid = get_global_id(0);
     int     max_tour_sz = 2 * num_node;
-    int     beg = max_tour_sz * gid, end = max_tour_sz * (gid + 1);
-    int     tour[max_tour_sz];
+    __global int  *tour = solutions + max_tour_sz * gid;
     int     tour_size;
     
     bool    visited[num_node];
@@ -435,14 +415,10 @@ __kernel void construct_solution(int num_node, int capacity, double max_dist, do
     step++;
     tour[step] = tour[0];
     tour_size = step + 1;
+
+    tour[max_tour_sz-1] = tour_size;
     
-    // return solution
-    for (i = 0; i < tour_size; i++) {
-        solutions[i+beg] = tour[i];
-    }
-    solutions[end-1] = tour_size;
-    
-    solution_lens[gid] = compute_tour_length(num_node, distance, solutions + beg, tour_size);
+    solution_lens[gid] = compute_tour_length(num_node, distance, tour, tour_size);
 //    printf("len:%lf \n", solution_lens[gid]);
 }
 
@@ -457,9 +433,8 @@ __kernel void local_search(int num_node, __global int *rnd_seeds,
 {
     int     gid = get_global_id(0);
     int     max_tour_sz = 2 * num_node;
-    int     beg = max_tour_sz * gid, end = max_tour_sz * (gid + 1);
-    __global int *tour = solutions + beg;
-    int     tour_size = solutions[end-1];
+    __global int *tour = solutions + max_tour_sz * gid;
+    int     tour_size = tour[max_tour_sz-1];
     
     /* vector containing don't look bits */
     bool dlb[num_node];
@@ -526,7 +501,7 @@ __kernel void update_statistics(int num_node, int n_ants, __global int *solution
     iter_best_tour[max_tour_sz - 1] = tmp_tour_size;
     solution_lens[n_ants+1] = solution_lens[idx];
     
-    // upfate best-so-far solution
+    // update best-so-far solution
     best_tour = solutions + max_tour_sz * n_ants;
     if(solution_lens[idx] - solution_lens[n_ants] < -EPSILON){
         // get better solution
@@ -536,6 +511,20 @@ __kernel void update_statistics(int num_node, int n_ants, __global int *solution
         best_tour[max_tour_sz - 1] = tmp_tour_size;
         solution_lens[n_ants] = solution_lens[idx];
     }
+}
+
+/*
+ * pheromone init
+ * number of threads: num_node * num_node
+ */
+__kernel void pheromone_init(double initial_trail, __global double *pheromone,
+                             __global double *total_info, __global double *distance)
+{
+    int gid = get_global_id(0);
+    
+    pheromone[gid] = initial_trail;
+    total_info[gid] = pow((float)pheromone[gid], (float)ALPHA) * pow((float)(1.0/(distance[gid]+0.1)), (float)BETA);
+
 }
 
 /*
@@ -554,12 +543,31 @@ __kernel void pheromone_evaporation(__global double *pheromone)
 }
 
 /*
+ * update pheromone weighted
+ * number of threads: 1
+ */
+__kernel void update_pheromone_weighted(int num_node, __global double *pheromone,
+                                        __global int *tour, int tour_size,
+                                        double tour_length, int weight)
+{
+    int      i, j, h;
+    double   d_tau;
+    
+    d_tau = weight / tour_length;
+    for (i = 0; i < tour_size - 1; i++) {
+        j = tour[i];
+        h = tour[i+1];
+        pheromone[j * num_node + h] += d_tau;
+    }
+}
+
+/*
  * pheromone update
  * number of threads: 1
  */
-__kernel void pheromone_update(int num_node, int n_ants,
-                               __global int *solutions, __global double *solution_lens,
-                               __global double *pheromone, int iter_stagnate_cnt)
+__kernel void ras_update(int num_node, int n_ants,
+                         __global int *solutions, __global double *solution_lens,
+                         __global double *pheromone)
 {
     __global int *tour, *best_tour;
     int tour_size, best_tour_size;
@@ -567,35 +575,51 @@ __kernel void pheromone_update(int num_node, int n_ants,
     
     int i, k, b, target;
     double help_b[n_ants];
-    
-    if (iter_stagnate_cnt >= 5)
-    {
-        pheromone_disturbance(num_node, pheromone);
-//        iter_stagnate_cnt -= 2;
-    } else {
-        /* apply the pheromone deposit */
-        
+
+
+    /* apply the pheromone deposit */
+    for (k = 0; k < n_ants; k++) {
+        help_b[k] = solution_lens[k];
+    }
+    for (i = 0; i < RAS_RANKS - 1; i++) {
+        b = help_b[0];
+        target = 0;
         for (k = 0; k < n_ants; k++) {
-            help_b[k] = solution_lens[k];
-        }
-        for (i = 0; i < RAS_RANKS - 1; i++) {
-            b = help_b[0];
-            target = 0;
-            for (k = 0; k < n_ants; k++) {
-                if (help_b[k] < b) {
-                    b = help_b[k];
-                    target = k;
-                }
+            if (help_b[k] < b) {
+                b = help_b[k];
+                target = k;
             }
-            help_b[target] = LONG_MAX;
-            tour = solutions + max_tour_sz * k;
-            tour_size = tour[max_tour_sz - 1];
-            update_pheromone_weighted(num_node, pheromone, tour, tour_size, solution_lens[k], RAS_RANKS-i-1);
         }
-        // best so far tour store at the end of solutions memory
-        best_tour = solutions + max_tour_sz * n_ants;
-        best_tour_size = best_tour[max_tour_sz - 1];
-        update_pheromone_weighted(num_node, pheromone, best_tour, best_tour_size, solution_lens[n_ants], RAS_RANKS);
+        help_b[target] = LONG_MAX;
+        tour = solutions + max_tour_sz * k;
+        tour_size = tour[max_tour_sz - 1];
+        update_pheromone_weighted(num_node, pheromone, tour, tour_size, solution_lens[k], RAS_RANKS-i-1);
+    }
+    // best so far tour store at the end of solutions memory
+    best_tour = solutions + max_tour_sz * n_ants;
+    best_tour_size = best_tour[max_tour_sz - 1];
+    update_pheromone_weighted(num_node, pheromone, best_tour, best_tour_size, solution_lens[n_ants], RAS_RANKS);
+}
+
+/*
+ * 蚁群停滞时，加入扰动跳出局部最优解
+ *  number of threads: 1
+ */
+__kernel void pheromone_disturbance(int num_node, __global double *pheromone)
+{
+//    printf("begin pheromone disturbance...\n");
+    
+    int i;
+    double mean_pheromone = 0.0;
+    int sz = num_node * num_node;
+    
+    for (i = 0; i < sz; i++) {
+        mean_pheromone += pheromone[i];
+    }
+    mean_pheromone = mean_pheromone / sz;
+
+    for (i = 0; i < sz; i++) {
+        pheromone[i] = (1- DELTA) * mean_pheromone + DELTA * pheromone[i];
     }
 }
 
@@ -610,4 +634,23 @@ __kernel void compute_total_info(__global double *pheromone, __global double *to
     /* Compute combined information pheromone times heuristic info after
      the pheromone update for ACO algorithm */
     total_info[gid] = pow((float)pheromone[gid], (float)ALPHA) * pow((float)(1.0/(distance[gid]+0.1)), (float)BETA);
+}
+
+/*
+ * update host best-so-far solution to device memory
+ * number of threads: 1
+ */
+__kernel void update_best_so_far_to_mem(int num_node, int n_ants,
+                                        __global int *from_tour, int tour_size, double tour_length,
+                                        __global int *solutions, __global double *solution_lens)
+{
+    int max_tour_sz = 2 * num_node;
+    __global int *best_tour = solutions + max_tour_sz * n_ants;
+    
+    for(int i = 0; i < tour_size; i++) {
+        best_tour[i] = from_tour[i];
+    }
+    best_tour[max_tour_sz-1] = tour_size;
+    
+    solution_lens[n_ants] = tour_length;
 }

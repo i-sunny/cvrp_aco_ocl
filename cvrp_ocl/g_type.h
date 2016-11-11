@@ -20,11 +20,15 @@ enum class kernel_t
 {
     construct_solution,
     local_search,
+    pheromone_init,
     pheromone_evaporation,
-    pheromone_update,
+    ras_update,
+    pheromone_disturbance,
+    update_pheromone_weighted,
     compute_total_info,
     update_statistics,
-    LENGTH = update_statistics+1
+    update_best_so_far_to_mem,
+    LENGTH = update_best_so_far_to_mem+1
 };
 
 class OpenclEnv

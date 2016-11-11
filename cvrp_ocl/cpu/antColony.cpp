@@ -21,7 +21,7 @@
 #include <time.h>
 
 #include "antColony.h"
-#include "simulatedAnnealing.h"
+#include "g_sa.h"
 #include "utilities.h"
 #include "vrpHelper.h"
 #include "problem.h"
@@ -134,11 +134,11 @@ void AntColony::run_aco_iteration()
         if ((instance->pid == 0 && instance->best_stagnate_cnt >= instance->num_node)
             || (instance->pid != 0 && instance->best_stagnate_cnt >= 30))
         {   // 2 * instance->num_node
-            SimulatedAnnealing *annealer = new SimulatedAnnealing(instance, this, 5.0, 0.97, MAX(instance->num_node * 4, 250), 50);
-            annealer->run();
-            instance->best_stagnate_cnt = 0;
+//            SimulatedAnnealing *annealer = new SimulatedAnnealing(instance, this, 5.0, 0.97, MAX(instance->num_node * 4, 250), 50);
+//            annealer->run();
+//            instance->best_stagnate_cnt = 0;
             
-            delete annealer;
+//            delete annealer;
         }
     }
     
@@ -249,11 +249,12 @@ void AntColony::ras_update( void )
     TRACE ( printf("Rank-based Ant System pheromone deposit\n"); );
     
     help_b = (double *)malloc( n_ants  * sizeof(double) );
-    for ( k = 0 ; k < n_ants ; k++ )
+    for ( k = 0 ; k < n_ants ; k++ ) {
         help_b[k] = ants[k].tour_length;
-    
+    }
     for ( i = 0 ; i < ras_ranks-1 ; i++ ) {
-        b = help_b[0]; target = 0;
+        b = help_b[0];
+        target = 0;
         for ( k = 0 ; k < n_ants ; k++ ) {
             if ( help_b[k] < b ) {
                 b = help_b[k];

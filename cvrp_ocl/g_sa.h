@@ -1,19 +1,19 @@
 //
-//  simulatedAnnealing.h
+//  g_sa.h
 //  cvrp_aco
 //
 //  Created by 孙晓奇 on 2016/10/19.
 //  Copyright © 2016年 xiaoqi.sxq. All rights reserved.
 //
 
-#ifndef simulatedAnnealing_h
-#define simulatedAnnealing_h
+#ifndef g_sa_h
+#define g_sa_h
 
 #include <stdio.h>
 #include <vector>
 #include "problem.h"
 #include "neighbourSearch.h"
-#include "antColony.h"
+#include "g_aco.h"
 
 #define TABU_LENGTH  3
 
@@ -25,7 +25,7 @@ struct Tabu {
 
 class SimulatedAnnealing {
 public:
-    SimulatedAnnealing(Problem *instance, AntColony *ant_colony, double t0,
+    SimulatedAnnealing(Problem *instance, g_ACO *g_aco, double t0,
                        double alpha, int epoch_length, int terminal_ratio);
     ~SimulatedAnnealing();
     void run(void);
@@ -33,9 +33,9 @@ public:
     
 private:
     Problem *instance;
-    AntStruct *best_ant;
-    AntStruct *iter_ant;
-    AntColony *ant_colony;
+    AntStruct *best_ant;      // sa best so far solution
+    AntStruct *iter_ant;      // sa iteration solution
+    g_ACO *g_aco;
     NeighbourSearch *neighbour_search;
     LocalSearch *local_search;
     vector<Tabu> tabu_list;
@@ -62,4 +62,4 @@ private:
     
 };
 
-#endif /* simulatedAnnealing_h */
+#endif /* g_sa_h */

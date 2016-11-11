@@ -10,14 +10,16 @@
 #define g_aco_h
 
 #include <stdio.h>
-#include "cpu/problem.h"
+#include "problem.h"
 #include "g_type.h"
+#include "antColony.h"
 
-class g_ACO
-{
+class g_ACO {
 public:
     g_ACO(OpenclEnv &env, Problem &instance);
     ~g_ACO();
+    void init_aco();
+    void exit_aco(void);
     void run_aco_iteration(void);
     
     void construct_solutions(void);
@@ -25,9 +27,19 @@ public:
     void update_statistics(void);
     void pheromone_update(void);
     
+    void pheromone_evaporation(void);
+    void ras_update(void);
+    void pheromone_disturbance(void);
+    void compute_total_info(void);
+    void update_pheromone_weighted(AntStruct *a, int weight);
+    
+    void copy_solution_from_to(AntStruct *a1, AntStruct *a2);
+    void update_best_so_far_from_mem(void);    // best-so-far from device to host memory
+    void update_best_so_far_to_mem(void);      // best-so-far from host to device memory
+    
 private:
     OpenclEnv& env;
-    Problem &instance;
+    Problem& instance;
     int num_node;             // number of node
     int n_ants;               // number of ants
     int max_tour_sz;          // max tour size

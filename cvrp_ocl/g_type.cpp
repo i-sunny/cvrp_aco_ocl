@@ -14,7 +14,7 @@
 
 using namespace std;
 
-static const char *kernelSrcPath { "/Users/sunny/Desktop/cvrp_proj/src/cvrp_ocl/cvrp_ocl/kernel.cl" };
+static const char *kernelSrcPath { "/Users/sunny/Desktop/cvrp_proj/src/cvrp_aco_ocl/cvrp_ocl/kernel.cl" };
 
 OpenclEnv::OpenclEnv()
 {
@@ -57,10 +57,14 @@ OpenclEnv::OpenclEnv()
     
     krnl_table[static_cast<int>(kernel_t::construct_solution)] = clCreateKernel(program, "construct_solution", NULL);
     krnl_table[static_cast<int>(kernel_t::local_search)] = clCreateKernel(program, "local_search", NULL);
+    krnl_table[static_cast<int>(kernel_t::pheromone_init)] = clCreateKernel(program, "pheromone_init", NULL);
     krnl_table[static_cast<int>(kernel_t::pheromone_evaporation)] = clCreateKernel(program, "pheromone_evaporation", NULL);
-    krnl_table[static_cast<int>(kernel_t::pheromone_update)] = clCreateKernel(program, "pheromone_update", NULL);
+    krnl_table[static_cast<int>(kernel_t::ras_update)] = clCreateKernel(program, "ras_update", NULL);
+    krnl_table[static_cast<int>(kernel_t::pheromone_disturbance)] = clCreateKernel(program, "pheromone_disturbance", NULL);
+    krnl_table[static_cast<int>(kernel_t::update_pheromone_weighted)] = clCreateKernel(program, "update_pheromone_weighted", NULL);
     krnl_table[static_cast<int>(kernel_t::compute_total_info)] = clCreateKernel(program, "compute_total_info", NULL);
     krnl_table[static_cast<int>(kernel_t::update_statistics)] = clCreateKernel(program, "update_statistics", NULL);
+    krnl_table[static_cast<int>(kernel_t::update_best_so_far_to_mem)] = clCreateKernel(program, "update_best_so_far_to_mem", NULL);
 }
 
 OpenclEnv::~OpenclEnv()

@@ -72,6 +72,7 @@ void exit_problem(Problem *instance)
     free( instance->ants );
     free( instance->best_so_far_ant->tour );
     free( instance->best_so_far_ant->visited );
+    free(instance->best_so_far_ant);
     free( instance->prob_of_selection );
     free(instance);
 }

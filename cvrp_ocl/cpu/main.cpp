@@ -14,7 +14,6 @@
 #include "utilities.h"
 #include "antColony.h"
 #include "parallelAco.h"
-#include "simulatedAnnealing.h"
 #include "problem.h"
 #include "timer.h"
 #include "io.h"
@@ -68,7 +67,6 @@ int main(int argc, char *argv[])
     for (int ntry = 0 ; ntry < tries; ntry++)
     {
         Problem *instance = new Problem(0);
-        AntColony *solver;
         
         start_timers();
         
@@ -84,29 +82,19 @@ int main(int argc, char *argv[])
         
         printf("Initialization took %.10f seconds\n", elapsed_time(VIRTUAL));
 
-        if (parallel_flag && instance->num_subs > 1) {
-            solver = new ParallelAco(instance);
-        } else {
-            solver = new AntColony(instance);
-        }
-        
-        solver->init_aco();
-        
         OpenclEnv cl_env;
         g_ACO g_aco(cl_env, *instance);
-        g_aco.run_aco_iteration();
-        
+
+        g_aco.init_aco();
         while (!termination_condition(instance)) {
-        
+
             g_aco.run_aco_iteration();
             
 //            solver->run_aco_iteration();
             instance->iteration++;
         }
-
-        solver->exit_aco();
+        g_aco.exit_aco();
         
-        delete solver;
         
         exit_report(instance, ntry);
         exit_problem(instance);

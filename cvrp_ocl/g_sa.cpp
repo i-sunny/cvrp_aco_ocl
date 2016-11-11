@@ -15,14 +15,14 @@
 #include <math.h>
 #include <assert.h>
 
-#include "simulatedAnnealing.h"
+#include "g_sa.h"
 #include "utilities.h"
 #include "timer.h"
 #include "io.h"
 
 bool tabu_flag = true;
 
-SimulatedAnnealing::SimulatedAnnealing(Problem *instance, AntColony *ant_colony, double t0,
+SimulatedAnnealing::SimulatedAnnealing(Problem *instance, g_ACO *g_aco, double t0,
                                        double alpha, int epoch_length, int terminal_ratio)
 {
     this->instance = instance;
@@ -35,11 +35,11 @@ SimulatedAnnealing::SimulatedAnnealing(Problem *instance, AntColony *ant_colony,
     // copy best so far ant
     best_ant = new AntStruct();
     best_ant->tour = new int[2*instance->num_node-1];
-    AntColony::copy_solution_from_to(instance->best_so_far_ant, best_ant);
+    g_aco->copy_solution_from_to(instance->best_so_far_ant, best_ant);
     
     iter_ant = new AntStruct();
     iter_ant->tour = new int[2*instance->num_node-1];
-    AntColony::copy_solution_from_to(best_ant, iter_ant);
+    g_aco->copy_solution_from_to(best_ant, iter_ant);
     
     iteration = 0;
     epoch_counter = 0;
@@ -50,7 +50,7 @@ SimulatedAnnealing::SimulatedAnnealing(Problem *instance, AntColony *ant_colony,
     
     neighbour_search = new NeighbourSearch(instance);
     local_search = new LocalSearch(instance);
-    this->ant_colony = ant_colony;
+    this->g_aco = g_aco;
 }
 
 SimulatedAnnealing::~SimulatedAnnealing()
@@ -68,7 +68,7 @@ SimulatedAnnealing::~SimulatedAnnealing()
 void SimulatedAnnealing::run(void)
 {
     printf("\n----- Start SA. length: %f iter: %d time: %f-----\n", best_ant->tour_length, instance->iteration, elapsed_time( VIRTUAL));
-    write_anneal_report(instance, iter_ant, NULL);
+//    write_anneal_report(instance, iter_ant, NULL);
     
     tabu_list.clear();
     
@@ -77,14 +77,17 @@ void SimulatedAnnealing::run(void)
     }
     
     if (best_ant->tour_length - instance->best_so_far_ant->tour_length < -EPSILON) {
-        AntColony::copy_solution_from_to(best_ant, instance->best_so_far_ant);
+        g_aco->copy_solution_from_to(best_ant, instance->best_so_far_ant);
+        // !!需要更新solutions and solution_lens 中的 best-so-far solution 相关信息
+        g_aco->update_best_so_far_to_mem();
+        
         if (instance->pid == 0) {
             instance->best_so_far_time = elapsed_time(VIRTUAL);
             write_best_so_far_report(instance);
         }
+        // !!
+        g_aco->compute_total_info();
     }
-    
-    ant_colony->compute_total_information();
     
     printf("----- End SA. length: %f iter: %d time: %f-----\n", best_ant->tour_length, instance->iteration, elapsed_time( VIRTUAL));
     
@@ -126,7 +129,7 @@ bool SimulatedAnnealing::step(void)
                 
                 double ar = accept_cnt / (double) test_cnt;
                 double ir = improvement_cnt / (double) test_cnt;
-                DEBUG(printf("Time: %f, T: %f, ar: %f, ir: %f moves:%ld\n", elapsed_time(VIRTUAL), t, ar, ir, test_cnt);)
+                DEBUG(printf("Time: %f, T: %f, ar: %f, ir: %f moves:%d\n", elapsed_time(VIRTUAL), t, ar, ir, test_cnt);)
                 test_cnt = accept_cnt = improvement_cnt = 0;
             }
             
@@ -178,13 +181,10 @@ void SimulatedAnnealing::accept(Move *move)
     // apply this neighbourhood move
     move->apply();
     
-    // seem to have worse performance
-//    local_search->do_local_search(iter_ant);
-    
     if (iter_ant->tour_length - best_ant->tour_length < -EPSILON) {
-        AntColony::copy_solution_from_to(iter_ant, best_ant);
+        g_aco->copy_solution_from_to(iter_ant, best_ant);
         // update pheromone
-        ant_colony->global_update_pheromone_weighted(iter_ant, 2 * ras_ranks);
+        g_aco->update_pheromone_weighted(iter_ant, 2 * ras_ranks);
         printf("[%d]SA better solution. length:%f, sa_iter:%d\n", instance->pid,iter_ant->tour_length, iteration);
     }
 }

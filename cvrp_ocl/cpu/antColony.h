@@ -52,6 +52,7 @@ public:
     
     
     AntColony(Problem *instance);
+    
     virtual ~AntColony();
     
     virtual void run_aco_iteration(void);

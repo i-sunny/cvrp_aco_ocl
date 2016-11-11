@@ -15,10 +15,10 @@
 		A336A3F31DD16D6E00E817B6 /* neighbourSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A336A3DF1DD16D6E00E817B6 /* neighbourSearch.cpp */; };
 		A336A3F41DD16D6E00E817B6 /* parallelAco.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A336A3E11DD16D6E00E817B6 /* parallelAco.cpp */; };
 		A336A3F51DD16D6E00E817B6 /* problem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A336A3E31DD16D6E00E817B6 /* problem.cpp */; };
-		A336A3F61DD16D6E00E817B6 /* simulatedAnnealing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A336A3E51DD16D6E00E817B6 /* simulatedAnnealing.cpp */; };
 		A336A3F71DD16D6E00E817B6 /* unix_timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A336A3E81DD16D6E00E817B6 /* unix_timer.cpp */; };
 		A336A3F81DD16D6E00E817B6 /* utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A336A3E91DD16D6E00E817B6 /* utilities.cpp */; };
 		A336A3F91DD16D6E00E817B6 /* vrpHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A336A3EB1DD16D6E00E817B6 /* vrpHelper.cpp */; };
+		A36A362C1DD603CA0021CE91 /* g_sa.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A36A362A1DD603CA0021CE91 /* g_sa.cpp */; };
 		A37DAC9F1DB51EBC0009F63A /* OpenCL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A37DAC9E1DB51EBC0009F63A /* OpenCL.framework */; };
 		A37DACA21DB51EEC0009F63A /* g_type.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A37DACA01DB51EEC0009F63A /* g_type.cpp */; };
 		A37DACA41DB5203A0009F63A /* kernel.cl in Sources */ = {isa = PBXBuildFile; fileRef = A37DACA31DB5203A0009F63A /* kernel.cl */; };
@@ -53,19 +53,19 @@
 		A336A3E21DD16D6E00E817B6 /* parallelAco.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = parallelAco.h; path = cpu/parallelAco.h; sourceTree = "<group>"; };
 		A336A3E31DD16D6E00E817B6 /* problem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = problem.cpp; path = cpu/problem.cpp; sourceTree = "<group>"; };
 		A336A3E41DD16D6E00E817B6 /* problem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = problem.h; path = cpu/problem.h; sourceTree = "<group>"; };
-		A336A3E51DD16D6E00E817B6 /* simulatedAnnealing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = simulatedAnnealing.cpp; path = cpu/simulatedAnnealing.cpp; sourceTree = "<group>"; };
-		A336A3E61DD16D6E00E817B6 /* simulatedAnnealing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = simulatedAnnealing.h; path = cpu/simulatedAnnealing.h; sourceTree = "<group>"; };
 		A336A3E71DD16D6E00E817B6 /* timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = timer.h; path = cpu/timer.h; sourceTree = "<group>"; };
 		A336A3E81DD16D6E00E817B6 /* unix_timer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = unix_timer.cpp; path = cpu/unix_timer.cpp; sourceTree = "<group>"; };
 		A336A3E91DD16D6E00E817B6 /* utilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = utilities.cpp; path = cpu/utilities.cpp; sourceTree = "<group>"; };
 		A336A3EA1DD16D6E00E817B6 /* utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utilities.h; path = cpu/utilities.h; sourceTree = "<group>"; };
 		A336A3EB1DD16D6E00E817B6 /* vrpHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = vrpHelper.cpp; path = cpu/vrpHelper.cpp; sourceTree = "<group>"; };
 		A336A3EC1DD16D6E00E817B6 /* vrpHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vrpHelper.h; path = cpu/vrpHelper.h; sourceTree = "<group>"; };
+		A36A362A1DD603CA0021CE91 /* g_sa.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = g_sa.cpp; sourceTree = "<group>"; };
+		A36A362B1DD603CA0021CE91 /* g_sa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_sa.h; sourceTree = "<group>"; };
 		A37DAC841DB501B10009F63A /* cvrp_ocl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cvrp_ocl; sourceTree = BUILT_PRODUCTS_DIR; };
 		A37DAC9E1DB51EBC0009F63A /* OpenCL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenCL.framework; path = System/Library/Frameworks/OpenCL.framework; sourceTree = SDKROOT; };
 		A37DACA01DB51EEC0009F63A /* g_type.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = g_type.cpp; sourceTree = "<group>"; };
 		A37DACA11DB51EEC0009F63A /* g_type.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_type.h; sourceTree = "<group>"; };
-		A37DACA31DB5203A0009F63A /* kernel.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = kernel.cl; sourceTree = "<group>"; };
+		A37DACA31DB5203A0009F63A /* kernel.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; lineEnding = 0; path = kernel.cl; sourceTree = "<group>"; };
 		A39319101DD0B8A200A79EDC /* g_aco.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = g_aco.cpp; sourceTree = "<group>"; };
 		A39319111DD0B8A200A79EDC /* g_aco.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_aco.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -85,6 +85,8 @@
 		A336A3D31DD16D2800E817B6 /* gpu */ = {
 			isa = PBXGroup;
 			children = (
+				A36A362A1DD603CA0021CE91 /* g_sa.cpp */,
+				A36A362B1DD603CA0021CE91 /* g_sa.h */,
 				A37DACA01DB51EEC0009F63A /* g_type.cpp */,
 				A37DACA11DB51EEC0009F63A /* g_type.h */,
 				A37DACA31DB5203A0009F63A /* kernel.cl */,
@@ -112,8 +114,6 @@
 				A336A3E21DD16D6E00E817B6 /* parallelAco.h */,
 				A336A3E31DD16D6E00E817B6 /* problem.cpp */,
 				A336A3E41DD16D6E00E817B6 /* problem.h */,
-				A336A3E51DD16D6E00E817B6 /* simulatedAnnealing.cpp */,
-				A336A3E61DD16D6E00E817B6 /* simulatedAnnealing.h */,
 				A336A3E71DD16D6E00E817B6 /* timer.h */,
 				A336A3E81DD16D6E00E817B6 /* unix_timer.cpp */,
 				A336A3E91DD16D6E00E817B6 /* utilities.cpp */,
@@ -209,13 +209,13 @@
 				A39319121DD0B8A200A79EDC /* g_aco.cpp in Sources */,
 				A336A3EF1DD16D6E00E817B6 /* localSearch.cpp in Sources */,
 				A336A3EE1DD16D6E00E817B6 /* io.cpp in Sources */,
-				A336A3F61DD16D6E00E817B6 /* simulatedAnnealing.cpp in Sources */,
 				A336A3F41DD16D6E00E817B6 /* parallelAco.cpp in Sources */,
 				A336A3F31DD16D6E00E817B6 /* neighbourSearch.cpp in Sources */,
 				A336A3ED1DD16D6E00E817B6 /* antColony.cpp in Sources */,
 				A336A3F71DD16D6E00E817B6 /* unix_timer.cpp in Sources */,
 				A336A3F81DD16D6E00E817B6 /* utilities.cpp in Sources */,
 				A336A3F91DD16D6E00E817B6 /* vrpHelper.cpp in Sources */,
+				A36A362C1DD603CA0021CE91 /* g_sa.cpp in Sources */,
 				A37DACA41DB5203A0009F63A /* kernel.cl in Sources */,
 				A336A3F51DD16D6E00E817B6 /* problem.cpp in Sources */,
 				A336A3F01DD16D6E00E817B6 /* main.cpp in Sources */,
