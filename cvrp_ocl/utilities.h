@@ -16,7 +16,7 @@
 
 #define MAXIMUM_NO_TRIES      100
 
-const double EPSILON = 0.001;
+const float EPSILON = 0.001f;
 
 #define TRUE  1
 #define FALSE 0
@@ -34,18 +34,18 @@ const double EPSILON = 0.001;
 
 #define IA 16807
 #define IM 2147483647
-#define AM (1.0/IM)
+#define AM (1.0f/IM)
 #define IQ 127773
 #define IR 2836
 #define MASK 123459876
 
-double mean ( int *values, int max);
+float mean ( int *values, int max);
 
-double meanr ( double *values, int max );
+float meanr ( float *values, int max );
 
-double std_deviation ( int *values, int i, double mean );
+float std_deviation ( int *values, int i, float mean );
 
-double std_deviationr ( double *values, int i, double mean );
+float std_deviationr ( float *values, int i, float mean );
 
 int best_of_vector ( int *values, int i );
 
@@ -55,19 +55,19 @@ void swap ( int v[], int i, int j );
 
 void sort ( int v[], int left, int right );
 
-double quantil ( int vector[], double q, int numbers );
+float quantil ( int vector[], float q, int numbers );
 
-void swap2(double v[], int v2[], int i, int j);
+void swap2(float v[], int v2[], int i, int j);
 
-void sort2(double v[], int v2[], int left, int right);
+void sort2(float v[], int v2[], int left, int right);
 
-double ran01 ( int *idum );
+float ran01 ( int *idum );
 
 int random_number ( int *idum );
 
 int ** generate_int_matrix( int n, int m);
 
-double ** generate_double_matrix( int n, int m);
+float ** generate_float_matrix( int n, int m);
 
 void swap(int *i, int *j);
 

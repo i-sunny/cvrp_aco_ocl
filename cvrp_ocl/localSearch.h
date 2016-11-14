@@ -33,7 +33,7 @@ private:
     AntStruct *ants;
     int n_ants;
     bool ls_flag;
-    double **distance;
+    float **distance;
     int num_node;
     int **nn_list;
     int nn_ls;

@@ -25,8 +25,8 @@ struct Tabu {
 
 class SimulatedAnnealing {
 public:
-    SimulatedAnnealing(Problem *instance, g_ACO *g_aco, double t0,
-                       double alpha, int epoch_length, int terminal_ratio);
+    SimulatedAnnealing(Problem *instance, g_ACO *g_aco, float t0,
+                       float alpha, int epoch_length, int terminal_ratio);
     ~SimulatedAnnealing();
     void run(void);
     bool step(void);
@@ -39,9 +39,9 @@ private:
     NeighbourSearch *neighbour_search;
     LocalSearch *local_search;
     vector<Tabu> tabu_list;
-    double alpha;
-    double t0;
-    double t;
+    float alpha;
+    float t0;
+    float t;
     int iteration;
     int epoch_length;
     int epoch_counter;

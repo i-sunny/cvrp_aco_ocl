@@ -158,7 +158,7 @@ void ParallelAco::build_sub_problems(AntStruct *ant, const vector< vector<RouteC
     Problem *sub, *master = instance;
     int *tour = ant->tour;
     vector<RouteCenter *> routes;
-    double sub_best_length;
+    float sub_best_length;
     int i, j, k, t;
     
     for (int p = 0; p < sub_problem_routes.size(); p++)
@@ -228,7 +228,7 @@ void ParallelAco::init_sub_pheromone(AntColony *sub_solver, Problem *master, Pro
     TRACE( printf("init sub-problem %d pheromone...\n", sub->pid);)
     
     int i, j, ri, rj;
-    double ratio = 1.0 * sub->best_so_far_ant->tour_length / master->best_so_far_ant->tour_length;
+    float ratio = 1.0f * sub->best_so_far_ant->tour_length / master->best_so_far_ant->tour_length;
     /*
      * 1)子问题从主问题那里获取初始信息素
      */
@@ -250,7 +250,7 @@ void ParallelAco::init_sub_pheromone(AntColony *sub_solver, Problem *master, Pro
      * 子问题的信息素初始化过程与主问题基本一致
      */
     // 为第一次迭代做的设置
-    double trail_0 = 0.5;
+    float trail_0 = 0.5f;
     sub_solver->init_pheromone_trails(trail_0);
     sub_solver->compute_total_information();
     
@@ -314,8 +314,8 @@ void ParallelAco::update_subs_to_master(Problem *master, const vector<Problem *>
     int i, j,h, rj, rh, k;
     int *sub_tour, *master_tour;
     int sub_sz;
-    double ratio;
-    double sub_best_length, master_best_length, tmp_length = 0;
+    float ratio;
+    float sub_best_length, master_best_length, tmp_length = 0;
     
     master_best_length = master->best_so_far_ant->tour_length;
     
@@ -442,7 +442,7 @@ void *handle(void* in)
     Problem *sub, *master;
     AntColony *sub_solver;
     ParallelAco *master_solver;
-    double sub_best_length;
+    float sub_best_length;
     
     master = info->master;
     sub = info->sub;

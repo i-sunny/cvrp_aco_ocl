@@ -23,9 +23,9 @@
 #endif
 
 
-double compute_tour_length(Problem *instance, int *t, int t_sz);
-double compute_route_length(Problem *instance, int *route, int route_size);
-double **compute_distances(Problem *instance);
+float compute_tour_length(Problem *instance, int *t, int t_sz);
+float compute_route_length(Problem *instance, int *route, int route_size);
+float **compute_distances(Problem *instance);
 int ** compute_nn_lists (Problem *instance);
 void compute_route_centers(Problem *instance, int *tour, const vector<RouteCenter *>& centers);
 

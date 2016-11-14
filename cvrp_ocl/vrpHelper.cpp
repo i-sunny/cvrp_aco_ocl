@@ -25,19 +25,19 @@ email: sunxq1991@gmail.com
 #define M_PI 3.14159265358979323846264
 #endif
 
-double distance(Point *nodeptr, int i, int j, DistanceTypeEnum type);
-double round_distance (Point *nodeptr, int i, int j);
+float distance(Point *nodeptr, int i, int j, DistanceTypeEnum type);
+float round_distance (Point *nodeptr, int i, int j);
 int ceil_distance (Point *nodeptr, int i, int j);
 int geo_distance (Point *nodeptr, int i, int j);
 int att_distance (Point *nodeptr, int i, int j);
 
 
-static double dtrunc (double x)
+static float dtrunc (float x)
 {
     int k;
 
     k = (int) x;
-    x = (double) k;
+    x = (float) k;
     return x;
 }
 
@@ -45,7 +45,7 @@ static double dtrunc (double x)
 /*
  * 统一的距离计算入口
  */
-double distance(Point *nodeptr, int i, int j, DistanceTypeEnum type)
+float distance(Point *nodeptr, int i, int j, DistanceTypeEnum type)
 {
     
     switch(type) {
@@ -64,7 +64,7 @@ double distance(Point *nodeptr, int i, int j, DistanceTypeEnum type)
       OUTPUT:   distance between the two nodes
 */
 
-double round_distance (Point *nodeptr, int i, int j)
+float round_distance (Point *nodeptr, int i, int j)
 /*    
       FUNCTION: compute Euclidean distances between two nodes rounded to next 
                 integer for VRPLIB instances
@@ -73,9 +73,9 @@ double round_distance (Point *nodeptr, int i, int j)
       COMMENTS: for the definition of how to compute this distance see VRPLIB
 */
 {
-    double xd = nodeptr[i].x - nodeptr[j].x;
-    double yd = nodeptr[i].y - nodeptr[j].y;
-    double r  = sqrt(xd*xd + yd*yd);
+    float xd = nodeptr[i].x - nodeptr[j].x;
+    float yd = nodeptr[i].y - nodeptr[j].y;
+    float r  = sqrt(xd*xd + yd*yd);
 
     return r;
 }
@@ -89,9 +89,9 @@ int ceil_distance (Point *nodeptr, int i, int j)
       COMMENTS: for the definition of how to compute this distance see VRPLIB
 */
 {
-    double xd = nodeptr[i].x - nodeptr[j].x;
-    double yd = nodeptr[i].y - nodeptr[j].y;
-    double r  = sqrt(xd*xd + yd*yd);
+    float xd = nodeptr[i].x - nodeptr[j].x;
+    float yd = nodeptr[i].y - nodeptr[j].y;
+    float r  = sqrt(xd*xd + yd*yd);
 
     return (int)(ceil (r));
 }
@@ -106,11 +106,11 @@ int geo_distance (Point *nodeptr, int i, int j)
                 for the definition of how to compute this distance see VRPLIB
 */
 {
-    double deg, min;
-    double lati, latj, longi, longj;
-    double q1, q2, q3;
+    float deg, min;
+    float lati, latj, longi, longj;
+    float q1, q2, q3;
     int dd;
-    double x1 = nodeptr[i].x, x2 = nodeptr[j].x, 
+    float x1 = nodeptr[i].x, x2 = nodeptr[j].x, 
 	y1 = nodeptr[i].y, y2 = nodeptr[j].y;
 
     deg = dtrunc (x1);
@@ -144,10 +144,10 @@ int att_distance (Point *nodeptr, int i, int j)
       COMMENTS: for the definition of how to compute this distance see VRPLIB
 */
 {
-    double xd = nodeptr[i].x - nodeptr[j].x;
-    double yd = nodeptr[i].y - nodeptr[j].y;
-    double rij = sqrt ((xd * xd + yd * yd) / 10.0);
-    double tij = dtrunc (rij);
+    float xd = nodeptr[i].x - nodeptr[j].x;
+    float yd = nodeptr[i].y - nodeptr[j].y;
+    float rij = sqrt ((xd * xd + yd * yd) / 10.0);
+    float tij = dtrunc (rij);
     int dij;
 
     if (tij < rij)
@@ -157,7 +157,7 @@ int att_distance (Point *nodeptr, int i, int j)
     return dij;
 }
 
-double **compute_distances(Problem *instance)
+float **compute_distances(Problem *instance)
 /*    
       FUNCTION: computes the matrix of all intercity distances
       INPUT:    none
@@ -165,17 +165,17 @@ double **compute_distances(Problem *instance)
 */
 {
     int     i, j;
-    double     **matrix;
+    float     **matrix;
     int num_node = instance->num_node;
 
-    if((matrix = (double **)malloc(sizeof(double) * num_node * num_node +
-                                     sizeof(double *) * num_node)) == NULL){
+    if((matrix = (float **)malloc(sizeof(float) * num_node * num_node +
+                                     sizeof(float *) * num_node)) == NULL){
         fprintf(stderr,"Out of memory, exit.");
         exit(1);
     }
 
     for ( i = 0 ; i < num_node ; i++ ) {
-        matrix[i] = (double *)(matrix + num_node) + i*num_node;
+        matrix[i] = (float *)(matrix + num_node) + i*num_node;
         for ( j = 0  ; j < num_node ; j++ ) {
             matrix[i][j] = distance(instance->nodeptr, i, j, instance->dis_type);
         }
@@ -193,7 +193,7 @@ int ** compute_nn_lists (Problem *instance)
 */
 {
     int i, node, nn;
-    double *distance_vector;
+    float *distance_vector;
     int *help_vector;
     int **m_nnear;
     int num_node = instance->num_node;
@@ -212,7 +212,7 @@ int ** compute_nn_lists (Problem *instance)
                                       + num_node * sizeof(int *))) == NULL){
         exit(EXIT_FAILURE);
     }
-    distance_vector = (double *)calloc(num_node, sizeof(double));
+    distance_vector = (float *)calloc(num_node, sizeof(float));
     help_vector = (int *)calloc(num_node, sizeof(int));
  
     for ( node = 0 ; node < num_node ; node++ ) {  /* compute cnd-sets for all node */
@@ -241,10 +241,10 @@ int ** compute_nn_lists (Problem *instance)
  INPUT:    pointer to tour tour, tour size tour_size
  OUTPUT:   tour length of tour t
  */
-double compute_tour_length(Problem *instance, int *tour, int tour_size)
+float compute_tour_length(Problem *instance, int *tour, int tour_size)
 {
     int      i;
-    double   tour_length = 0;
+    float   tour_length = 0;
   
     for ( i = 0 ; i < tour_size-1; i++ ) {
         tour_length += instance->distance[tour[i]][tour[i+1]];
@@ -255,10 +255,10 @@ double compute_tour_length(Problem *instance, int *tour, int tour_size)
 /*
  FUNCTION: compute the route length of route
  */
-double compute_route_length(Problem *instance, int *route, int route_size)
+float compute_route_length(Problem *instance, int *route, int route_size)
 {
     int      i;
-    double   route_length = 0;
+    float   route_length = 0;
     
     for ( i = 0 ; i < route_size-1; i++ ) {
         route_length += instance->distance[route[i]][route[i+1]];

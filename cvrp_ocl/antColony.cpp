@@ -88,7 +88,7 @@ void AntColony::init_aco()
      initial value of the pheromones is. Here we set it to some
      small constant, analogously as done in MAX-MIN Ant System.
      */
-    double trail_0 = 0.5;
+    float trail_0 = 0.5;
     init_pheromone_trails(trail_0);
     compute_total_information();
     
@@ -176,7 +176,7 @@ void AntColony::construct_ant_solution(AntStruct *ant)
     int path_load;          /* 单次从depot出发的送货量 */
     int next_node, current_node;
     int i, demand_meet_cnt, step;
-    double path_distance;
+    float path_distance;
     
     /* Mark all nodes as unvisited */
     ant_empty_memory(ant);
@@ -244,11 +244,11 @@ void AntColony::construct_ant_solution(AntStruct *ant)
 void AntColony::ras_update( void )
 {
     int i, k, b, target;
-    double *help_b;
+    float *help_b;
     
     TRACE ( printf("Rank-based Ant System pheromone deposit\n"); );
     
-    help_b = (double *)malloc( n_ants  * sizeof(double) );
+    help_b = (float *)malloc( n_ants  * sizeof(float) );
     for ( k = 0 ; k < n_ants ; k++ ) {
         help_b[k] = ants[k].tour_length;
     }
@@ -279,8 +279,8 @@ void AntColony::pheromone_disturbance(void)
            instance->pid, instance->iteration, instance->best_stagnate_cnt, instance->iter_stagnate_cnt);
     
     int i, j;
-    double sum_pheromone = 0, mean_pheromone;
-    double delta = 0.7;
+    float sum_pheromone = 0, mean_pheromone;
+    float delta = 0.7;
     
     for (i = 0; i < num_node; i++) {
         for (j = 0; j < num_node; j++) {
@@ -395,7 +395,7 @@ int AntColony::find_best(void)
       (SIDE)EFFECTS:  none
 */
 {
-    double   min;
+    float   min;
     int   k, k_min;
 
     min = ants[0].tour_length;
@@ -419,7 +419,7 @@ int AntColony::find_worst(void)
       (SIDE)EFFECTS:  none
 */
 {
-    double   max;
+    float   max;
     int   k, k_max;
 
     max = ants[0].tour_length;
@@ -443,7 +443,7 @@ Procedures for pheromone manipulation
 
 
 
-void AntColony::init_pheromone_trails( double initial_trail )
+void AntColony::init_pheromone_trails( float initial_trail )
 /*    
       FUNCTION:      initialize pheromone trails
       INPUT:         initial value of pheromone trails "initial_trail"
@@ -522,11 +522,11 @@ void AntColony::global_update_pheromone( AntStruct *a )
 */
 {  
     int i, j, h;
-    double   d_tau;
+    float   d_tau;
 
     TRACE ( printf("global pheromone update\n"); );
 
-    d_tau = 1.0 / (double) a->tour_length;
+    d_tau = 1.0f / a->tour_length;
     for ( i = 0 ; i < a->tour_size-1 ; i++ ) {
         j = a->tour[i];
         h = a->tour[i+1];
@@ -545,11 +545,11 @@ void AntColony::global_update_pheromone_weighted( AntStruct *a, int weight )
 */
 {  
     int      i, j, h;
-    double        d_tau;
+    float        d_tau;
 
     TRACE ( printf("global pheromone update weighted\n"); );
 
-    d_tau = (double) weight / (double) a->tour_length;
+    d_tau =  (float )weight / a->tour_length;
     for ( i = 0 ; i < a->tour_size-1 ; i++ ) {
         j = a->tour[i];
         h = a->tour[i+1];
@@ -651,7 +651,7 @@ int AntColony::choose_best_next( AntStruct *a, int phase )
 */
 { 
     int node, current_node, next_node;
-    double   value_best;
+    float   value_best;
 
     next_node = num_node;
     DEBUG( assert ( phase > 0 && phase < 2*num_node-2 ); );
@@ -690,7 +690,7 @@ int AntColony::neighbour_choose_best_next( AntStruct *a, int phase )
 */
 { 
     int i, current_node, next_node, help_node;
-    double   value_best, help;
+    float   value_best, help;
   
     next_node = num_node;
     DEBUG( assert ( phase > 0 && phase < 2*num_node-2 ); );
@@ -735,7 +735,7 @@ void AntColony::choose_closest_next( AntStruct *a, int phase )
 */
 { 
     int node, current_node, next_node;
-    double min_distance;
+    float min_distance;
   
     next_node = num_node;
     DEBUG( assert ( phase > 0 && phase < 2*num_node-2 ); );
@@ -771,10 +771,10 @@ int AntColony::neighbour_choose_and_move_to_next(AntStruct *a, int phase)
 {
     int i, help;
     int current_node, neighbour_node;
-    double   rnd, partial_sum = 0., sum_prob = 0.0;
-    /*  double   *prob_of_selection; */ /* stores the selection probabilities 
+    float   rnd, partial_sum = 0., sum_prob = 0.0;
+    /*  float   *prob_of_selection; */ /* stores the selection probabilities 
 	of the nearest neighbor nodes */
-    double   *prob_ptr;
+    float   *prob_ptr;
 
     prob_ptr = prob_of_selection;
 

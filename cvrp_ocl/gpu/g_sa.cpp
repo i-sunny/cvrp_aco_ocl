@@ -22,8 +22,8 @@
 
 bool tabu_flag = true;
 
-SimulatedAnnealing::SimulatedAnnealing(Problem *instance, g_ACO *g_aco, double t0,
-                                       double alpha, int epoch_length, int terminal_ratio)
+SimulatedAnnealing::SimulatedAnnealing(Problem *instance, g_ACO *g_aco, float t0,
+                                       float alpha, int epoch_length, int terminal_ratio)
 {
     this->instance = instance;
     this->t = t0;
@@ -127,8 +127,8 @@ bool SimulatedAnnealing::step(void)
                 epoch_counter = 0;
                 t = t * alpha;
                 
-                double ar = accept_cnt / (double) test_cnt;
-                double ir = improvement_cnt / (double) test_cnt;
+                float ar = accept_cnt / (float) test_cnt;
+                float ir = improvement_cnt / (float) test_cnt;
                 DEBUG(printf("Time: %f, T: %f, ar: %f, ir: %f moves:%d\n", elapsed_time(VIRTUAL), t, ar, ir, test_cnt);)
                 test_cnt = accept_cnt = improvement_cnt = 0;
             }
@@ -147,7 +147,7 @@ bool SimulatedAnnealing::acceptable(Move *move)
 {
     bool accepted = false;
     test_cnt++;
-    double delta = move->gain;
+    float delta = move->gain;
     
     if (tabu_flag) {
         // this move is in tabu list

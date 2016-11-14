@@ -15,7 +15,7 @@
 #ifndef antColony_h
 #define antColony_h
 
-#define HEURISTIC(m,n)     (1.0 / ((double) distance[m][n] + 0.1))
+#define HEURISTIC(m,n)     (1.0f / (distance[m][n] + 0.1f))
 /* add a small constant to avoid division by zero if a distance is
  zero */
 
@@ -35,10 +35,10 @@ public:
     AntStruct *ants;
     AntStruct *best_so_far_ant;
     
-    double **distance;
-    double   *prob_of_selection;
-    double   **pheromone;
-    double   **total_info;
+    float **distance;
+    float   *prob_of_selection;
+    float   **pheromone;
+    float   **total_info;
     int num_node;
     int n_ants;               /* number of ants */
     int nn_ants;              /* length of nearest neighbor lists for the ants'
@@ -68,7 +68,7 @@ public:
     void update_statistics( void );
     
     /* Pheromone manipulation etc. */
-    void init_pheromone_trails ( double initial_trail );
+    void init_pheromone_trails ( float initial_trail );
     void evaporation ( void );
     void evaporation_nn_list ( void );
     void global_update_pheromone ( AntStruct *a );

@@ -106,12 +106,12 @@ void print_problem_decompositon(const vector<Problem *>& subs)
 void print_probabilities(Problem *instance)
 {
     int i, j;
-    double   *p;
-    double   sum_prob;
+    float   *p;
+    float   sum_prob;
     int num_node = instance->num_node;
     
     printf("Selection Probabilities, iteration: %d\n",instance->iteration);
-    p = (double *)calloc(num_node, sizeof(double) );
+    p = (float *)calloc(num_node, sizeof(float) );
     
     for (i=0; i < num_node; i++) {
         printf("From %d:  ",i);
@@ -190,7 +190,7 @@ void print_pheromone(Problem *instance)
 void print_total_info(Problem *instance)
 {
     int i, j, num_node =  instance->num_node;
-    double **total = instance->total_info;
+    float **total = instance->total_info;
     
     printf("combined pheromone and heuristic info\n\n");
     for (i=0; i < num_node; i++) {
@@ -427,11 +427,11 @@ void read_instance_file(Problem *instance, const char *vrp_file_name)
             buf[0]=0;
         }
         else if ( strcmp("COMMENT", buf) == 0 ){
-            fscanf(vrp_file, "%lf", &instance->optimum);
+            fscanf(vrp_file, "%f", &instance->optimum);
             buf[0]=0;
         }
         else if ( strcmp("COMMENT:", buf) == 0 ){
-            fscanf(vrp_file, "%lf", &instance->optimum);
+            fscanf(vrp_file, "%f", &instance->optimum);
             buf[0]=0;
         }
         else if ( strcmp("TYPE", buf) == 0 ) {
@@ -526,19 +526,19 @@ void read_instance_file(Problem *instance, const char *vrp_file_name)
             buf[0]=0;
         }
         else if ( strcmp("DISTANCE", buf) == 0 ) {
-            fscanf(vrp_file, "%lf", &instance->max_distance);
+            fscanf(vrp_file, "%f", &instance->max_distance);
             buf[0]=0;
         }
         else if ( strcmp("DISTANCE:", buf) == 0 ) {
-            fscanf(vrp_file, "%lf", &instance->max_distance);
+            fscanf(vrp_file, "%f", &instance->max_distance);
             buf[0]=0;
         }
         else if ( strcmp("SERVICE_TIME", buf) == 0 ) {
-            fscanf(vrp_file, "%lf", &instance->service_time);
+            fscanf(vrp_file, "%f", &instance->service_time);
             buf[0]=0;
         }
         else if ( strcmp("SERVICE_TIME:", buf) == 0 ) {
-            fscanf(vrp_file, "%lf", &instance->service_time);
+            fscanf(vrp_file, "%f", &instance->service_time);
             buf[0]=0;
         }
     
@@ -560,7 +560,7 @@ void read_instance_file(Problem *instance, const char *vrp_file_name)
         exit(EXIT_FAILURE);
     else {
         for ( i = 0 ; i < instance->num_node ; i++ ) {
-            fscanf(vrp_file,"%d %lf %lf", &j, &nodeptr[i].x, &nodeptr[i].y );
+            fscanf(vrp_file,"%d %f %f", &j, &nodeptr[i].x, &nodeptr[i].y );
         }
     }
     

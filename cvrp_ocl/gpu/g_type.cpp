@@ -53,8 +53,9 @@ OpenclEnv::OpenclEnv(Problem &instance) : instance(instance)
         exit(EXIT_FAILURE);
     }
     
-    // get numComputeUnits
-    clGetDeviceInfo(deviceId, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &numComputeUnits, &size);
+    // get device information
+    clGetDeviceInfo(deviceId, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(size_t), &numComputeUnits, &size);
+    clGetDeviceInfo(deviceId, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxWorkGroupSize, &size);
     
     krnl_table[static_cast<int>(kernel_t::construct_solution)] = clCreateKernel(program, "construct_solution", NULL);
     krnl_table[static_cast<int>(kernel_t::local_search)] = clCreateKernel(program, "local_search", NULL);

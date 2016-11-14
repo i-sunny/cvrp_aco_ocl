@@ -97,7 +97,7 @@ void LocalSearch::do_local_search(AntStruct *ant)
 int * LocalSearch::generate_random_permutation( int n )
 {
    int  i, help, node, tot_assigned = 0;
-   double    rnd;
+   float    rnd;
    int  *r;
 
    r = (int *)malloc(n * sizeof(int));
@@ -189,8 +189,8 @@ void LocalSearch::two_opt_single_route(int *tour, int rbeg, int rend,
     int i, j, h, l;
     int improvement_flag, help, n_improves = 0, n_exchanges = 0;
     int h1=0, h2=0, h3=0, h4=0;
-    double radius;             /* radius of nn-search */
-    double gain = 0;
+    float radius;             /* radius of nn-search */
+    float gain = 0;
     int *random_vector;
 
     // debug
@@ -303,15 +303,15 @@ void LocalSearch::swap(int *tour, int tour_size)
     /* array of single route load */
     int *route_load = new int[num_node-1];
     /* array of single route distance */
-    double *route_dist = new double[num_node-1];
+    float *route_dist = new float[num_node-1];
     int beg;
     int load = 0, load1 = 0, load2 = 0;
-    double dist = 0, dist1 = 0, dist2 = 0;
+    float dist = 0, dist1 = 0, dist2 = 0;
     
     Point *nodes = instance->nodeptr;
     
     int i = 0, j = 0, k = 0;
-    double gain = 0;
+    float gain = 0;
     int n1, p_n1, s_n1, n2, p_n2, s_n2;
     int p1 = 0, p2 = 0;     /* path idx of node n1 and n2 */
     

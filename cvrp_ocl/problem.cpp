@@ -28,9 +28,9 @@ int g_master_problem_iteration_num;   /* 每次外循环，主问题蚁群的迭
 int g_sub_problem_iteration_num;      /* 每次外循环，子问题蚁群的迭代次数 */
 bool sa_flag = true;                        /* 是否使用sa */
 
-double rho;           /* parameter for evaporation */
-double alpha;         /* importance of trail */
-double beta;          /* importance of heuristic evaluate */
+float rho;           /* parameter for evaporation */
+float alpha;         /* importance of trail */
+float beta;          /* importance of heuristic evaluate */
 int ras_ranks;   /* additional parameter for rank-based version of ant system */
 
 /* ------------------------------------------------------------------------ */
@@ -51,8 +51,8 @@ void init_problem(Problem *instance)
         instance->distance = compute_distances(instance);
     }
     instance->nn_list = compute_nn_lists(instance);
-    instance->pheromone = generate_double_matrix(instance->num_node, instance->num_node);
-    instance->total_info = generate_double_matrix(instance->num_node, instance->num_node );
+    instance->pheromone = generate_float_matrix(instance->num_node, instance->num_node);
+    instance->total_info = generate_float_matrix(instance->num_node, instance->num_node );
     allocate_ants(instance);
 }
 
@@ -84,17 +84,17 @@ void exit_problem(Problem *instance)
  */
 void init_sub_problem(Problem *master, Problem *sub)
 {
-    double **sub_dis;
+    float **sub_dis;
     int ri, rj;
     Point *nodeptr, *m_node;
     
     // 初始化 sub-problem distance矩阵
-    if((sub_dis = (double **)malloc(sizeof(double) * sub->num_node * sub->num_node +
-                                      sizeof(double *) * sub->num_node)) == NULL) {
+    if((sub_dis = (float **)malloc(sizeof(float) * sub->num_node * sub->num_node +
+                                      sizeof(float *) * sub->num_node)) == NULL) {
         exit(EXIT_FAILURE);
     }
     for (int i = 0; i < sub->num_node; i++ ) {
-        sub_dis[i] = (double *)(sub_dis + sub->num_node) + i * sub->num_node;
+        sub_dis[i] = (float *)(sub_dis + sub->num_node) + i * sub->num_node;
         ri = sub->real_nodes[i];
         for (int j = 0; j < sub->num_node; j++ ) {
             rj = sub->real_nodes[j];
@@ -117,7 +117,7 @@ void init_sub_problem(Problem *master, Problem *sub)
     sub->nodeptr = nodeptr;
     
     // sub 需要额外的结构存储当前最优解所对应的信息素
-    sub->best_pheromone = generate_double_matrix(sub->num_node, sub->num_node);
+    sub->best_pheromone = generate_float_matrix(sub->num_node, sub->num_node);
 //    print_distance(sub);
     
     init_problem(sub);
@@ -149,7 +149,7 @@ void allocate_ants (Problem *instance)
 {
     int i;
     AntStruct *ants, *best_so_far_ant;
-    double   *prob_of_selection;
+    float   *prob_of_selection;
     
     if((ants = (AntStruct *)malloc(sizeof( AntStruct ) * instance->n_ants +
                                    sizeof(AntStruct *) * instance->n_ants)) == NULL){
@@ -169,7 +169,7 @@ void allocate_ants (Problem *instance)
     best_so_far_ant->tour        = (int *)calloc(2*instance->num_node-1, sizeof(int));
     best_so_far_ant->visited     = (bool *)calloc(instance->num_node, sizeof(bool));
     
-    if ((prob_of_selection = (double *)malloc(sizeof(double) * (instance->nn_ants + 1))) == NULL) {
+    if ((prob_of_selection = (float *)malloc(sizeof(float) * (instance->nn_ants + 1))) == NULL) {
         printf("Out of memory, exit.");
         exit(1);
     }
@@ -288,7 +288,7 @@ error:
 bool check_route(Problem *instance, int *tour, int rbeg, int rend)
 {
     int load = 0;
-    double distance = 0;
+    float distance = 0;
     
     if (tour[rbeg] != 0 || tour[rend] != 0) {
         fprintf(stderr,"\n%s:error: 车辆路径没有形成一条回路\n", __FUNCTION__);

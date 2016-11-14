@@ -49,6 +49,7 @@ public:
     cl_command_queue commandQueue;
     cl_program program;
     int numComputeUnits;
+    int maxWorkGroupSize;
     
     OpenclEnv(Problem &instance);
     ~OpenclEnv();

@@ -45,7 +45,7 @@ void NeighbourSearch::reset_ant(AntStruct *ant)
     Point *nodes = instance->nodeptr;
     int beg;
     int load;
-    double dist;
+    float dist;
     
     this->ant = ant;
     
@@ -103,11 +103,11 @@ Move *NeighbourSearch::exchange(int *tour, int tour_size)
     int p_n1, p_n2, s_n1, s_n2;
     int pos_n1 = 0, pos_n2 = 0;
     int r1, r2;           /* idx of route 1 and route 2 */
-    double gain;
-    double **distance = instance->distance;
+    float gain;
+    float **distance = instance->distance;
     Point *nodes = instance->nodeptr;
     int load_r1, load_r2;
-    double dist_r1, dist_r2;
+    float dist_r1, dist_r2;
     bool valid = true;
     
     r1 = random_route();
@@ -166,10 +166,10 @@ Move *NeighbourSearch::exchange_1(int *tour, int tour_size)
     int n1, n2;
     int p_n1, p_n2, s_n1, s_n2;
     int pos_n1, pos_n2;
-    double gain;
-    double **distance = instance->distance;
+    float gain;
+    float **distance = instance->distance;
     int sz;
-    double dist;
+    float dist;
     bool valid = true;
     
     sz = 0;
@@ -231,11 +231,11 @@ Move *NeighbourSearch::insertion(int *tour, int tour_size)
     int p_n1, p_n2, s_n1, s_n2;
     int pos_n1, pos_n2;
     int r1 = 0, r2;           /* idx of route 1 and route 2 */
-    double gain;
-    double **distance = instance->distance;
+    float gain;
+    float **distance = instance->distance;
     Point *nodes = instance->nodeptr;
     int load_r1, load_r2;
-    double dist_r2;
+    float dist_r2;
     bool valid = true;
     int sz;
     
@@ -313,10 +313,10 @@ Move *NeighbourSearch::insertion_1(int *tour, int tour_size)
     int n1, n2;
     int p_n1, p_n2, s_n1, s_n2;
     int pos_n1, pos_n2;
-    double gain;
-    double **distance = instance->distance;
+    float gain;
+    float **distance = instance->distance;
     int load_r1, load_r2;
-    double dist;
+    float dist;
     int sz;
     bool valid = true;
     
@@ -376,9 +376,9 @@ Move *NeighbourSearch::inversion(int *tour, int tour_size)
     int n1, n2;   /* random node from route 1 and toure 2*/
     int pos_n1 = 0, pos_n2 = 0;
     int p_n1, s_n2;
-    double gain;
-    double **distance = instance->distance;
-    double dist;
+    float gain;
+    float **distance = instance->distance;
+    float dist;
     bool valid = true;
     
     sz = 0;
@@ -440,7 +440,7 @@ int NeighbourSearch::random_pos_in_route(Route *route)
 
 int NeighbourSearch::random_route(void)
 {
-    return random()%(routes.size());
+    return (int)random()%(routes.size());
 }
 
 

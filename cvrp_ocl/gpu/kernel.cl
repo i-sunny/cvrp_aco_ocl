@@ -1,16 +1,16 @@
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+//#pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #define TRUE true
 #define FALSE false
 
-#define EPSILON 0.001
+#define EPSILON 0.001f
 #define DEBUG(x)   x
 /****** parameters ******/
-#define RHO         0.1
-#define ALPHA       1.0
-#define BETA        2.0
+#define RHO         0.1f
+#define ALPHA       1.0f
+#define BETA        2.0f
 #define RAS_RANKS   6
-#define DELTA       0.7
+#define DELTA       0.7f
 /************************/
 
 
@@ -20,7 +20,7 @@
 
 #define IA 16807
 #define IM 2147483647
-#define AM (1.0/IM)
+#define AM (1.0f/IM)
 #define IQ 127773
 #define IR 2836
 
@@ -32,10 +32,10 @@
 #define N_ANTS  NUM_NODE
 #endif
 
-inline double ran01(__global int *idum )
+inline float ran01(__global int *idum )
 {
     int k;
-    double ans;
+    float ans;
     
     k =(*idum)/IQ;
     *idum = IA * (*idum - k * IQ) - IR * k;
@@ -44,11 +44,11 @@ inline double ran01(__global int *idum )
     return ans;
 }
 
-inline double compute_tour_length(__global double *distance,
+inline float compute_tour_length(__global float *distance,
                                   __global int *tour, int tour_size)
 {
     int      i;
-    double   tour_length = 0;
+    float   tour_length = 0;
     
     for ( i = 0 ; i < tour_size-1; i++ ) {
         tour_length += distance[tour[i] * NUM_NODE + tour[i+1]];
@@ -57,7 +57,7 @@ inline double compute_tour_length(__global double *distance,
 }
 
 /******** print ********/
-inline void print_solution(__global double *distance, __global int *tour, int tour_size)
+inline void print_solution(__global float *distance, __global int *tour, int tour_size)
 {
     int   i;
     
@@ -76,7 +76,7 @@ inline void print_solution(__global double *distance, __global int *tour, int to
     printf("\n--------\n\n");
 }
 
-inline void print_single_route(__global double *distance, __global int *route, int route_size)
+inline void print_single_route(__global float *distance, __global int *route, int route_size)
 {
     int   i;
     
@@ -96,11 +96,11 @@ inline void print_single_route(__global double *distance, __global int *route, i
 }
 
 /******* construct solutions *********/
-inline int choose_best_next(int phase, __global int *tour,__global double *total_info,
+inline int choose_best_next(int phase, __global int *tour,__global float *total_info,
                             bool *visited, bool *demand_meet)
 {
     int node, current_node, next_node;
-    double   value_best;
+    float   value_best;
     
     next_node = NUM_NODE;
     current_node = tour[phase-1];
@@ -124,20 +124,20 @@ inline int choose_best_next(int phase, __global int *tour,__global double *total
 }
 
 inline int choose_and_move_to_next(int phase, __global int *rnd_seed, __global int *tour,
-                                   __global double *total_info, double *prob_ptr,
+                                   __global float *total_info, float *prob_ptr,
                                    bool *visited, bool *demand_meet)
 {
     int i;
     int current_node;
-    double partial_sum = 0.0, sum_prob = 0.0;
-    double rnd;
+    float partial_sum = 0.0f, sum_prob = 0.0f;
+    float rnd;
     
     current_node = tour[phase-1];           /* current_node node of ant k */
     for (i = 0 ; i < NUM_NODE; i++) {
         if (visited[i]) {
-            prob_ptr[i] = 0.0;   /* node already visited */
+            prob_ptr[i] = 0.0f;   /* node already visited */
         } else if(demand_meet[i] == FALSE) {
-            prob_ptr[i] = 0.0;  /* 该点不满足要求 */
+            prob_ptr[i] = 0.0f;  /* 该点不满足要求 */
         } else {
             prob_ptr[i] = total_info[current_node * NUM_NODE + i];
             sum_prob += prob_ptr[i];
@@ -145,7 +145,7 @@ inline int choose_and_move_to_next(int phase, __global int *rnd_seed, __global i
     }
 
     
-    if (sum_prob <= 0.0) {
+    if (sum_prob <= 0.0f) {
         /* All nodes from the candidate set are tabu */
         return choose_best_next(phase, tour, total_info, visited, demand_meet);
         printf("------error-------\n");
@@ -172,7 +172,7 @@ inline int choose_and_move_to_next(int phase, __global int *rnd_seed, __global i
 //inline void generate_random_permutation(int n, int *r, __global int *rnd_seed)
 //{
 //    int  i, help, node, tot_assigned = 0;
-//    double    rnd;
+//    float    rnd;
 //
 //    for ( i = 0 ; i < n; i++){
 //        r[i] = i;
@@ -191,7 +191,7 @@ inline int choose_and_move_to_next(int phase, __global int *rnd_seed, __global i
 
 inline void two_opt_single_route(__global int *tour, int rbeg, int rend,
                                  bool *dlb, bool *route_node_map, int *tour_node_pos,
-                                 __global int *rnd_seed, __global double *distance,
+                                 __global int *rnd_seed, __global float *distance,
                                  __global int *nn_list, int nn_ls)
 {
     int n1, n2;                            /* nodes considered for an exchange */
@@ -203,8 +203,8 @@ inline void two_opt_single_route(__global int *tour, int rbeg, int rend,
     int i, j, h, l;
     int improvement_flag, help, n_improves = 0, n_exchanges = 0;
     int h1=0, h2=0, h3=0, h4=0;
-    double radius;             /* radius of nn-search */
-    double gain = 0;
+    float radius;             /* radius of nn-search */
+    float gain = 0;
 //    int random_vector[num_route_node];
     
 //    print_single_route(NUM_NODE, distance, tour + rbeg, num_route_node+1);
@@ -310,7 +310,7 @@ inline void two_opt_single_route(__global int *tour, int rbeg, int rend,
     }
 }
 
-inline void two_opt_solution(__global int *tour, int tour_size, __global double *distance,
+inline void two_opt_solution(__global int *tour, int tour_size, __global float *distance,
                              __global int *rnd_seed, __global int *nn_list, int nn_ls)
 {
     /* vector containing don't look bits */
@@ -356,19 +356,19 @@ inline void two_opt_solution(__global int *tour, int tour_size, __global double 
  * then swaps these two customers in their positions.
  */
 inline void swap(__global int *tour, int tour_size,
-                 __global double *distance, __global int *demand,
-                 int capacity, double max_dist, double service_time)
+                 __global float *distance, __global int *demand,
+                 int capacity, float max_dist, float service_time)
 {
     /* array of single route load */
     int route_load[NUM_NODE-1];
     /* array of single route distance */
-    double route_dist[NUM_NODE-1];
+    float route_dist[NUM_NODE-1];
     int beg;
     int load = 0, load1 = 0, load2 = 0;
-    double dist = 0, dist1 = 0, dist2 = 0;
+    float dist = 0, dist1 = 0, dist2 = 0;
 
     int i = 0, j = 0, k = 0;
-    double gain = 0;
+    float gain = 0;
     int n1, p_n1, s_n1, n2, p_n2, s_n2;
     int p1 = 0, p2 = 0;     /* path idx of node n1 and n2 */
     
@@ -467,12 +467,12 @@ inline void swap(__global int *tour, int tour_size,
 }
 
 /******** pheromone update ********/
-//inline void update_pheromone_weighted(__global double *pheromone,
+//inline void update_pheromone_weighted(__global float *pheromone,
 //                                      __global int *tour, int tour_size,
-//                                      double tour_length, int weight)
+//                                      float tour_length, int weight)
 //{
 //    int      i, j, h;
-//    double   d_tau;
+//    float   d_tau;
 //
 //    d_tau = weight / tour_length;
 //    for (i = 0; i < tour_size - 1; i++) {
@@ -483,9 +483,9 @@ inline void swap(__global int *tour, int tour_size,
 //}
 
 
-inline int find_best(__global double *solution_lens)
+inline int find_best(__global float *solution_lens)
 {
-    double   min;
+    float   min;
     int   k, k_min;
     
     min = solution_lens[0];
@@ -507,9 +507,9 @@ inline int find_best(__global double *solution_lens)
  * construct the solution for an ant
 * number of threads: N_ANTS
  */
-__kernel void construct_solution(int capacity, double max_dist, double serv_time,
-                                 __global int *rnd_seeds, __global double *distance, __global int *demand,
-                                 __global double *total_info, __global int *solutions, __global double *solution_lens)
+__kernel void construct_solution(int capacity, float max_dist, float serv_time,
+                                 __global int *rnd_seeds, __global float *distance, __global int *demand,
+                                 __global float *total_info, __global int *solutions, __global float *solution_lens)
 {
 //    DEBUG(printf("begin constructing solution\n");)
     
@@ -520,13 +520,13 @@ __kernel void construct_solution(int capacity, double max_dist, double serv_time
     
     bool    visited[NUM_NODE];
     bool    demand_meet[NUM_NODE];
-    double  prob_of_selection[NUM_NODE];
+    float  prob_of_selection[NUM_NODE];
     
     int     visited_node_cnt = 0;   /* count of visited node by this ant */
     int     path_load;              /* 单次从depot出发的送货量 */
     int     next_node, current_node;
     int     i, demand_meet_cnt, step;
-    double  path_distance;
+    float  path_distance;
     
     /* Mark all nodes as unvisited */
     tour_size = 0;
@@ -593,8 +593,8 @@ __kernel void construct_solution(int capacity, double max_dist, double serv_time
  * number of threads: N_ANTS
  */
 __kernel void local_search(__global int *rnd_seeds, int nn_ls, __global int *nn_list,
-                           __global double *distance, __global int *solutions, __global double *solution_lens,
-                           __global int *demand, int capacity, double max_dist, double serv_time)
+                           __global float *distance, __global int *solutions, __global float *solution_lens,
+                           __global int *demand, int capacity, float max_dist, float serv_time)
 {
     int     gid = get_global_id(0);
     int     max_tour_sz = 2 * NUM_NODE;
@@ -615,7 +615,7 @@ __kernel void local_search(__global int *rnd_seeds, int nn_ls, __global int *nn_
  * update statistics 
  * number of threads: 1 
  */
-__kernel void update_statistics(__global int *solutions, __global double *solution_lens)
+__kernel void update_statistics(__global int *solutions, __global float *solution_lens)
 {
     __global int *best_tour, *iter_best_tour;
     int     tour_size;
@@ -646,8 +646,8 @@ __kernel void update_statistics(__global int *solutions, __global double *soluti
  * pheromone init
  * number of threads: NUM_NODE * NUM_NODE
  */
-__kernel void pheromone_init(double initial_trail, __global double *pheromone,
-                             __global double *total_info, __global double *distance)
+__kernel void pheromone_init(float initial_trail, __global float *pheromone,
+                             __global float *total_info, __global float *distance)
 {
     int gid = get_global_id(0);
     
@@ -659,7 +659,7 @@ __kernel void pheromone_init(double initial_trail, __global double *pheromone,
  * pheromone evaporation
  * number of threads: NUM_NODE * NUM_NODE
  */
-__kernel void pheromone_evaporation(__global double *pheromone)
+__kernel void pheromone_evaporation(__global float *pheromone)
 {
     int gid = get_global_id(0);
     
@@ -674,12 +674,12 @@ __kernel void pheromone_evaporation(__global double *pheromone)
  * update pheromone weighted
  * number of threads: 1
  */
-__kernel void update_pheromone_weighted(__global double *pheromone,
+__kernel void update_pheromone_weighted(__global float *pheromone,
                                         __global int *tour, int tour_size,
-                                        double tour_length, int weight)
+                                        float tour_length, int weight)
 {
     int      i, j, h;
-    double   d_tau;
+    float   d_tau;
     
     d_tau = weight / tour_length;
     for (i = 0; i < tour_size - 1; i++) {
@@ -693,15 +693,15 @@ __kernel void update_pheromone_weighted(__global double *pheromone,
  * pheromone update
  * number of threads: 1
  */
-__kernel void ras_update(__global int *solutions, __global double *solution_lens,
-                         __global double *pheromone)
+__kernel void ras_update(__global int *solutions, __global float *solution_lens,
+                         __global float *pheromone)
 {
     __global int *tour, *best_tour;
     int tour_size, best_tour_size;
     int max_tour_sz = 2 * NUM_NODE;
     
     int i, k, target;
-    double help_b[N_ANTS], b;
+    float help_b[N_ANTS], b;
 
 
     /* apply the pheromone deposit */
@@ -733,11 +733,11 @@ __kernel void ras_update(__global int *solutions, __global double *solution_lens
  * 蚁群停滞时，加入扰动跳出局部最优解
  *  number of threads: 1
  */
-__kernel void pheromone_disturbance(__global double *pheromone)
+__kernel void pheromone_disturbance(__global float *pheromone)
 {
 //    printf("begin pheromone disturbance...\n");
     int i;
-    double mean_pheromone = 0.0;
+    float mean_pheromone = 0.0;
     int sz = NUM_NODE * NUM_NODE;
     
     for (i = 0; i < sz; i++) {
@@ -754,7 +754,7 @@ __kernel void pheromone_disturbance(__global double *pheromone)
  * compute total info
  * number of threads: NUM_NODE * NUM_NODE
  */
-__kernel void compute_total_info(__global double *pheromone, __global double *total_info, __global double *distance)
+__kernel void compute_total_info(__global float *pheromone, __global float *total_info, __global float *distance)
 {
     int gid = get_global_id(0);
     
@@ -767,8 +767,8 @@ __kernel void compute_total_info(__global double *pheromone, __global double *to
  * update host best-so-far solution to device memory
  * number of threads: 1
  */
-__kernel void update_best_so_far_to_mem(__global int *from_tour, int tour_size, double tour_length,
-                                        __global int *solutions, __global double *solution_lens)
+__kernel void update_best_so_far_to_mem(__global int *from_tour, int tour_size, float tour_length,
+                                        __global int *solutions, __global float *solution_lens)
 {
     int max_tour_sz = 2 * NUM_NODE;
     __global int *best_tour = solutions + max_tour_sz * N_ANTS;

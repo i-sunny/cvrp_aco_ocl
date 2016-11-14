@@ -54,5 +54,5 @@
 typedef enum type_timer {REAL, VIRTUAL} TIMER_TYPE;
 
 void start_timers(void);
-double elapsed_time(TIMER_TYPE type);
+float elapsed_time(TIMER_TYPE type);
 char* get_format_time(void);

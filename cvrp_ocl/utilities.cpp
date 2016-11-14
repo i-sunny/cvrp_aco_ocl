@@ -20,7 +20,7 @@
 #include "timer.h"
 
 
-double mean( int *values, int max ) 
+float mean( int *values, int max ) 
 /*    
       FUNCTION:       compute the average value of an integer array of length max 
       INPUT:          pointer to array, length of array
@@ -29,40 +29,40 @@ double mean( int *values, int max )
 */
 {
   int j;
-  double   m;
+  float   m;
 
   m = 0.;
   for ( j = 0 ; j < max ; j++ ) {
-    m += (double)values[j];
+    m += (float)values[j];
   }
-  m = m / (double)max;
+  m = m / (float)max;
   return m;
 }
 
 
 
-double meanr( double *values, int max ) 
+float meanr( float *values, int max ) 
 /*    
-      FUNCTION:       compute the average value of a doubleing number array of length max 
+      FUNCTION:       compute the average value of a floating number array of length max 
       INPUT:          pointer to array, length of array
       OUTPUT:         average 
       (SIDE)EFFECTS:  none
 */
 {
   int j;
-  double   m;
+  float   m;
 
   m = 0.;
   for ( j = 0 ; j < max ; j++ ) {
     m += values[j];
   }
-  m = m / (double)max;
+  m = m / (float)max;
   return m;
 }
 
 
 
-double std_deviation( int *values, int max, double mean ) 
+float std_deviation( int *values, int max, float mean ) 
 /*    
       FUNCTION:       compute the standard deviation of an integer array  
       INPUT:          pointer to array, length of array, mean 
@@ -71,36 +71,36 @@ double std_deviation( int *values, int max, double mean )
 */
 {
   int j;
-  double   dev = 0.;
+  float   dev = 0.;
 
   if (max <= 1)
     return 0.;
   for ( j = 0 ; j < max; j++ ) {
-    dev += ((double)values[j] - mean) * ((double)values[j] - mean);
+    dev += ((float)values[j] - mean) * ((float)values[j] - mean);
   }
-  return sqrt(dev/(double)(max - 1));
+  return sqrt(dev/(float)(max - 1));
 }
 
 
 
-double std_deviationr( double *values, int max, double mean ) 
+float std_deviationr( float *values, int max, float mean ) 
 /*    
-      FUNCTION:       compute the standard deviation of a doubleing number array  
+      FUNCTION:       compute the standard deviation of a floating number array  
       INPUT:          pointer to array, length of array, mean 
       OUTPUT:         standard deviation
       (SIDE)EFFECTS:  none
 */
 {
   int j;
-  double   dev;
+  float   dev;
 
   if (max <= 1)
     return 0.;
   dev = 0.;
   for ( j = 0 ; j < max ; j++ ) {
-    dev += ((double)values[j] - mean) * ((double)values[j] - mean);
+    dev += ((float)values[j] - mean) * ((float)values[j] - mean);
   }
-  return sqrt(dev/(double)(max - 1));
+  return sqrt(dev/(float)(max - 1));
 }
 
 
@@ -149,7 +149,7 @@ int worst_of_vector( int *values, int l )
 
 
 
-double quantil(int v[], double q, int l)
+float quantil(int v[], float q, int l)
 /*    
       FUNCTION:       return the q-quantil of an ordered integer array  
       INPUT:          one array, desired quantil q, length of array
@@ -158,13 +158,13 @@ double quantil(int v[], double q, int l)
 */
 {
   int i,j;
-  double tmp;
+  float tmp;
 
-  tmp = q * (double)l;
-  if ((double)((int)tmp) == tmp) {  
+  tmp = q * (float)l;
+  if ((float)((int)tmp) == tmp) {  
     i = (int)tmp;
     j = (int)(tmp + 1.);
-    return ((double)v[i-1] + (double)v[j-1]) / 2.;
+    return ((float)v[i-1] + (float)v[j-1]) / 2.;
   } else {
     i = (int)(tmp +1.);
     return v[i-1];
@@ -221,7 +221,7 @@ void sort(int v[], int left, int right)
 
 
 
-void swap2(double v[], int v2[], int i, int j)
+void swap2(float v[], int v2[], int i, int j)
 /*    
       FUNCTION:       auxiliary routine for sorting an integer array  
       INPUT:          two arraya, two indices
@@ -229,7 +229,7 @@ void swap2(double v[], int v2[], int i, int j)
       (SIDE)EFFECTS:  elements at position i and j of the two arrays are swapped
 */
 {
-    double tmp1;
+    float tmp1;
     int tmp2;
 
     tmp1 = v[i];
@@ -243,7 +243,7 @@ void swap2(double v[], int v2[], int i, int j)
 
 
 
-void sort2(double v[], int v2[], int left, int right)
+void sort2(float v[], int v2[], int left, int right)
 /*    
       FUNCTION:       recursive routine (quicksort) for sorting one array; second 
                       arrays does the same sequence of swaps  
@@ -268,7 +268,7 @@ void sort2(double v[], int v2[], int left, int right)
 
 
 
-double ran01( int *idum )
+float ran01( int *idum )
 /*    
       FUNCTION:       generate a random number that is uniformly distributed in [0,1]
       INPUT:          pointer to variable with the current seed
@@ -278,7 +278,7 @@ double ran01( int *idum )
 */
 {
   int k;
-  double ans;
+  float ans;
 
   k =(*idum)/IQ;
   *idum = IA * (*idum - k * IQ) - IR * k;
@@ -333,7 +333,7 @@ int ** generate_int_matrix( int n, int m)
 
 
 
-double ** generate_double_matrix( int n, int m)
+float ** generate_float_matrix( int n, int m)
 /*    
       FUNCTION:       malloc a matrix and return pointer to it
       INPUT:          size of matrix as n x m 
@@ -343,15 +343,15 @@ double ** generate_double_matrix( int n, int m)
 {
 
   int i;
-  double **matrix;
+  float **matrix;
 
-  if((matrix = (double **)malloc(sizeof(double) * n * m +
-                                 sizeof(double *) * n	 )) == NULL){
+  if((matrix = (float **)malloc(sizeof(float) * n * m +
+                                 sizeof(float *) * n	 )) == NULL){
     printf("Out of memory, exit.");
     exit(1);
   }
   for ( i = 0 ; i < n ; i++ ) {
-    matrix[i] = (double *)(matrix + n) + i*m;
+    matrix[i] = (float *)(matrix + n) + i*m;
   }
   return matrix;
 }

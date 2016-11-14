@@ -70,10 +70,10 @@ void g_ACO::init_aco()
     /*-------- (3.1) initialize the pheromone -------*/
     cl_int err_num;
     cl_kernel& pheromone_init = env.get_kernel(kernel_t::pheromone_init);
-    double trail_0 = 0.5;
+    float trail_0 = 0.5;
     
     // 1. set kernel arguments
-    err_num = clSetKernelArg(pheromone_init, 0, sizeof(cl_double), &trail_0);
+    err_num = clSetKernelArg(pheromone_init, 0, sizeof(float), &trail_0);
     err_num |= clSetKernelArg(pheromone_init, 1, sizeof(cl_mem), &pheromone_mem);
     err_num |= clSetKernelArg(pheromone_init, 2, sizeof(cl_mem), &total_info_mem);
     err_num |= clSetKernelArg(pheromone_init, 3, sizeof(cl_mem), &distance_mem);
@@ -97,9 +97,9 @@ void g_ACO::init_aco()
     }
     update_statistics();
     
-    trail_0 =  1.0 / ((rho) * instance.best_so_far_ant->tour_length);
+    trail_0 =  1.0f / ((rho) * instance.best_so_far_ant->tour_length);
     // 1. set kernel arguments
-    err_num = clSetKernelArg(pheromone_init, 0, sizeof(cl_double), &trail_0);
+    err_num = clSetKernelArg(pheromone_init, 0, sizeof(float), &trail_0);
     err_num |= clSetKernelArg(pheromone_init, 1, sizeof(cl_mem), &pheromone_mem);
     err_num |= clSetKernelArg(pheromone_init, 2, sizeof(cl_mem), &total_info_mem);
     err_num |= clSetKernelArg(pheromone_init, 3, sizeof(cl_mem), &distance_mem);
@@ -157,12 +157,17 @@ void g_ACO::run_aco_iteration()
 void g_ACO::construct_solutions(void)
 {
     cl_int err_num;
+    const int grp_size = env.maxWorkGroupSize / 4;
+//    const int num_grps = (ceil)(1.0 * n_ants / grp_size);
+    
+    size_t global_work_size[1] = {static_cast<size_t>(n_ants)};
+    size_t local_work_size[1] = {1};
     cl_kernel& construct_solution = env.get_kernel(kernel_t::construct_solution);
     
     // 1. set kernel arguments
     err_num = clSetKernelArg(construct_solution, 0, sizeof(cl_int), &(instance.vehicle_capacity));
-    err_num |= clSetKernelArg(construct_solution, 1, sizeof(cl_double), &(instance.max_distance));
-    err_num |= clSetKernelArg(construct_solution, 2, sizeof(cl_double), &(instance.service_time));
+    err_num |= clSetKernelArg(construct_solution, 1, sizeof(float), &(instance.max_distance));
+    err_num |= clSetKernelArg(construct_solution, 2, sizeof(float), &(instance.service_time));
     err_num |= clSetKernelArg(construct_solution, 3, sizeof(cl_mem), &seed_mem);
     err_num |= clSetKernelArg(construct_solution, 4, sizeof(cl_mem), &distance_mem);
     err_num |= clSetKernelArg(construct_solution, 5, sizeof(cl_mem), &demands_mem);
@@ -170,9 +175,6 @@ void g_ACO::construct_solutions(void)
     err_num |= clSetKernelArg(construct_solution, 7, sizeof(cl_mem), &solutions_mem);
     err_num |= clSetKernelArg(construct_solution, 8, sizeof(cl_mem), &solution_lens_mem);
     check_error(err_num, CL_SUCCESS);
-    
-    size_t global_work_size[1] = {static_cast<size_t>(n_ants)};
-    size_t local_work_size[1] = {1};
     
     // 2. queue the kernel up for executeion
     err_num = clEnqueueNDRangeKernel(env.commandQueue, construct_solution,
@@ -221,8 +223,8 @@ void g_ACO::local_search(void)
     err_num |= clSetKernelArg(local_search, 5, sizeof(cl_mem), &solution_lens_mem);
     err_num |= clSetKernelArg(local_search, 6, sizeof(cl_mem), &demands_mem);
     err_num |= clSetKernelArg(local_search, 7, sizeof(cl_int), &instance.vehicle_capacity);
-    err_num |= clSetKernelArg(local_search, 8, sizeof(cl_double), &instance.max_distance);
-    err_num |= clSetKernelArg(local_search, 9, sizeof(cl_double), &instance.service_time);
+    err_num |= clSetKernelArg(local_search, 8, sizeof(float), &instance.max_distance);
+    err_num |= clSetKernelArg(local_search, 9, sizeof(float), &instance.service_time);
     check_error(err_num, CL_SUCCESS);
     
     size_t global_work_size[1] = {static_cast<size_t>(n_ants)};
@@ -387,7 +389,7 @@ void g_ACO::update_pheromone_weighted(AntStruct *a, int weight)
     err_num = clSetKernelArg(update_pheromone_weighted, 0, sizeof(cl_mem), &pheromone_mem);
     err_num |= clSetKernelArg(update_pheromone_weighted, 1, sizeof(cl_mem), &tour_mem);
     err_num |= clSetKernelArg(update_pheromone_weighted, 2, sizeof(cl_int), &a->tour_size);
-    err_num |= clSetKernelArg(update_pheromone_weighted, 3, sizeof(cl_double), &a->tour_length);
+    err_num |= clSetKernelArg(update_pheromone_weighted, 3, sizeof(float), &a->tour_length);
     err_num |= clSetKernelArg(update_pheromone_weighted, 4, sizeof(cl_int), &weight);
     check_error(err_num, CL_SUCCESS);
     
@@ -436,14 +438,14 @@ void g_ACO::update_statistics(void)
 //                                  sizeof(int) * max_tour_sz, result, 0, NULL, NULL);
 ////    print_solution(&instance, result, result[max_tour_sz-1]);
     
-    double iter_best_len;
+    float iter_best_len;
     err_num |= clEnqueueReadBuffer(env.commandQueue, solution_lens_mem, CL_TRUE,
-                                  sizeof(double) * iter_best_id,
-                                  sizeof(double) * 1, &iter_best_len, 0, NULL, NULL);
+                                  sizeof(float) * iter_best_id,
+                                  sizeof(float) * 1, &iter_best_len, 0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
     
     // 4. update statistics
-    double best_so_far_len = instance.best_so_far_ant->tour_length;
+    float best_so_far_len = instance.best_so_far_ant->tour_length;
     instance.iteration_best_ant->tour_length = iter_best_len;
     if (instance.pid == 0) {
         write_iter_report(&instance);
@@ -500,10 +502,10 @@ void g_ACO::create_memory_objects(void)
      * 注意： 需要初始化 best-so-far solution length
      */
     solution_lens_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                       sizeof(double) * (n_ants + 1), NULL, &err_num);
-    double best_len = INFINITY;
+                                       sizeof(float) * (n_ants + 1), NULL, &err_num);
+    float best_len = INFINITY;
     err_num |= clEnqueueWriteBuffer(env.commandQueue, solution_lens_mem, CL_TRUE,
-                                    sizeof(double) * n_ants, sizeof(double) * 1, &best_len, 0, NULL, NULL);
+                                    sizeof(float) * n_ants, sizeof(float) * 1, &best_len, 0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
     
     // demand memory object
@@ -517,24 +519,24 @@ void g_ACO::create_memory_objects(void)
     
     // distance 2d-martix trans to 1d-array memory object
     k = 0;
-    double *tmp_distance = new double[num_node * num_node];
+    float *tmp_distance = new float[num_node * num_node];
     for (i = 0; i < num_node; i++) {
         for (j = 0; j < num_node; j++) {
             tmp_distance[k++] = instance.distance[i][j];
         }
     }
     distance_mem = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                  sizeof(double) * num_node * num_node, tmp_distance, &err_num);
+                                  sizeof(float) * num_node * num_node, tmp_distance, &err_num);
     check_error(err_num, CL_SUCCESS);
     
     // pheromone memory object
     pheromone_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                   sizeof(double) * num_node * num_node, NULL, &err_num);
+                                   sizeof(float) * num_node * num_node, NULL, &err_num);
     check_error(err_num, CL_SUCCESS);
     
     // total_info memory object
     total_info_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                    sizeof(double) * num_node * num_node, NULL, &err_num);
+                                    sizeof(float) * num_node * num_node, NULL, &err_num);
     check_error(err_num, CL_SUCCESS);
     
     // nn_list memory object
@@ -577,10 +579,10 @@ void g_ACO::update_best_so_far_from_mem(void)
                                   sizeof(int) * max_tour_sz, result, 0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
     
-    double best_len;
+    float best_len;
     err_num = clEnqueueReadBuffer(env.commandQueue, solution_lens_mem, CL_TRUE,
-                                  sizeof(double) * n_ants,
-                                  sizeof(double) * 1, &best_len, 0, NULL, NULL);
+                                  sizeof(float) * n_ants,
+                                  sizeof(float) * 1, &best_len, 0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
     
     // update best-so-far-ant
@@ -615,7 +617,7 @@ void g_ACO::update_best_so_far_to_mem(void)
     // 1. set kernel arguments
     err_num = clSetKernelArg(update_best_so_far_to_mem, 0, sizeof(cl_mem), &tour_mem);
     err_num |= clSetKernelArg(update_best_so_far_to_mem, 1, sizeof(cl_int), &best_so_far->tour_size);
-    err_num |= clSetKernelArg(update_best_so_far_to_mem, 2, sizeof(cl_double), &best_so_far->tour_length);
+    err_num |= clSetKernelArg(update_best_so_far_to_mem, 2, sizeof(float), &best_so_far->tour_length);
     err_num |= clSetKernelArg(update_best_so_far_to_mem, 3, sizeof(cl_mem), &solutions_mem);
     err_num |= clSetKernelArg(update_best_so_far_to_mem, 4, sizeof(cl_mem), &solution_lens_mem);
     check_error(err_num, CL_SUCCESS);
