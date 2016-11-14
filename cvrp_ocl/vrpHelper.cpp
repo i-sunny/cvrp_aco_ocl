@@ -222,8 +222,8 @@ int ** compute_nn_lists (Problem *instance)
             distance_vector[i] = instance->distance[node][i];
             help_vector[i] = i;
         }
-        distance_vector[node] = LONG_MAX;  /* node is not nearest neighbour */
-        distance_vector[0] = LONG_MAX;     /* depot点需要排除在 nearest neighbour之外 */
+        distance_vector[node] = INFINITY;  /* node is not nearest neighbour */
+        distance_vector[0] = INFINITY;     /* depot点需要排除在 nearest neighbour之外 */
         sort2(distance_vector, help_vector, 0, num_node-1);
         for ( i = 0 ; i < nn ; i++ ) {
             m_nnear[node][i] = help_vector[i];

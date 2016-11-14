@@ -6,8 +6,8 @@
 //  Copyright © 2016年 xiaoqi.sxq. All rights reserved.
 //
 
-#ifndef g_type_hpp
-#define g_type_hpp
+#ifndef g_type_h
+#define g_type_h
 
 
 #ifdef __APPLE__
@@ -15,6 +15,7 @@
 #else
 #include <CL/cl.h>
 #endif
+#include "../problem.h"
 
 enum class kernel_t
 {
@@ -34,11 +35,12 @@ enum class kernel_t
 class OpenclEnv
 {
 private:
+    Problem &instance;
     cl_kernel krnl_table[static_cast<int>(kernel_t::LENGTH)];
     
-    static cl_command_queue createCommandQueue(cl_context context, cl_device_id *device);
-    static cl_program createProgram(cl_context context, cl_device_id device, const char* filename);
-    static std::string readFile(const char *filename);
+    cl_command_queue createCommandQueue(cl_context context, cl_device_id *device);
+    cl_program createProgram(cl_context context, cl_device_id device, const char* filename);
+    std::string read_file(const char *filename);
     
 public:
     cl_platform_id platformId;
@@ -48,9 +50,9 @@ public:
     cl_program program;
     int numComputeUnits;
     
-    OpenclEnv();
+    OpenclEnv(Problem &instance);
     ~OpenclEnv();
     cl_kernel& get_kernel(kernel_t id);
 };
 
-#endif /* g_type_hpp */
+#endif /* g_type_h */

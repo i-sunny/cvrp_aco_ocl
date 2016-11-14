@@ -14,9 +14,10 @@
 
 using namespace std;
 
-static const char *kernelSrcPath { "/Users/sunny/Desktop/cvrp_proj/src/cvrp_aco_ocl/cvrp_ocl/kernel.cl" };
+static const char *kernelSrcPath = { "/Users/sunny/Desktop/cvrp_proj/src/cvrp_aco_ocl/cvrp_ocl/gpu/kernel.cl" };
+//static const char *kernelSrcPath = { "./gpu/kernel.cl" };
 
-OpenclEnv::OpenclEnv()
+OpenclEnv::OpenclEnv(Problem &instance) : instance(instance)
 {
     cl_int errNum;
     cl_uint numPlatforms;
@@ -126,10 +127,10 @@ cl_program OpenclEnv::createProgram(cl_context context, cl_device_id device, con
     cl_int errNum;
     cl_program program;
     
-    std::string srcStdStr = readFile(filename);
-    const char *srcStr = srcStdStr.c_str();
+    std::string src_file_str = read_file(filename);
+    const char *src = src_file_str.c_str();
     
-    program = clCreateProgramWithSource(context, 1, (const char**)&srcStr, NULL, NULL);
+    program = clCreateProgramWithSource(context, 1, (const char**)&src, NULL, NULL);
     if (program == NULL)
     {
         std::cerr << "Failed to create CL program from source." << std::endl;
@@ -153,20 +154,32 @@ cl_program OpenclEnv::createProgram(cl_context context, cl_device_id device, con
     return program;
 }
 
-std::string OpenclEnv::readFile(const char *filename)
+std::string OpenclEnv::read_file(const char *filename)
 {
-    std::ifstream kernelFile(filename, std::ios::in);
-    if (!kernelFile.is_open())
+    std::string src;
+    
+    std::ifstream kernel_file(filename, std::ios::in);
+    if (!kernel_file.is_open())
     {
         std::cerr << "Failed to open file for reading: " << filename << std::endl;
         return NULL;
     }
     
     std::ostringstream oss;
-    oss << kernelFile.rdbuf();
+    oss << kernel_file.rdbuf();
     std::string content = oss.str();
     
-    return content;
+    /*
+     * add '#define NUM_NODE num_node' and '#define N_ANTS n_ants'
+     * before the source file
+     */
+    std::ostringstream header_stream;
+    header_stream << "#define NUM_NODE " << instance.num_node << "\n#define N_ANTS " << instance.n_ants << "\n";
+    std::string header = header_stream.str();
+    
+    src.append(header).append(content);
+    
+    return src;
 }
 
 cl_kernel& OpenclEnv:: get_kernel(kernel_t id)

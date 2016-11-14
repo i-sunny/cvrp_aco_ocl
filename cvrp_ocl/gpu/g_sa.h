@@ -11,8 +11,8 @@
 
 #include <stdio.h>
 #include <vector>
-#include "problem.h"
-#include "neighbourSearch.h"
+#include "../problem.h"
+#include "../neighbourSearch.h"
 #include "g_aco.h"
 
 #define TABU_LENGTH  3

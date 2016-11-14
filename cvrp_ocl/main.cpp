@@ -17,8 +17,8 @@
 #include "problem.h"
 #include "timer.h"
 #include "io.h"
-#include "g_type.h"
-#include "g_aco.h"
+#include "gpu/g_type.h"
+#include "gpu/g_aco.h"
 
 static bool parallel_flag  = true;  /* 是否使用并行算法 */
 static int tries = 15;
@@ -71,9 +71,9 @@ int main(int argc, char *argv[])
         start_timers();
         
         char *filename = parse_commandline(argc, argv);
-        sprintf(filename, "/Users/sunny/Desktop/cvrp_proj/dataset/CMT/CMT%d.vrp", i);
+        sprintf(filename, "/Users/sunny/Desktop/cvrp_proj/src/cvrp_aco_ocl/dataset/CMT%d.vrp", i);
 //        linux
-//        sprintf(filename, "./CMT/CMT%d.vrp", i);
+//        sprintf(filename, "../dataset/CMT%d.vrp", i);
         
         
         read_instance_file(instance, filename);
@@ -82,15 +82,12 @@ int main(int argc, char *argv[])
         
         printf("Initialization took %.10f seconds\n", elapsed_time(VIRTUAL));
 
-        OpenclEnv cl_env;
+        OpenclEnv cl_env(*instance);
         g_ACO g_aco(cl_env, *instance);
 
         g_aco.init_aco();
         while (!termination_condition(instance)) {
-
             g_aco.run_aco_iteration();
-            
-//            solver->run_aco_iteration();
             instance->iteration++;
         }
         g_aco.exit_aco();

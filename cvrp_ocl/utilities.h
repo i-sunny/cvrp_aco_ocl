@@ -14,7 +14,6 @@
 #ifndef   utilities_h
 #define   utilities_h
 
-#define INFTY                 LONG_MAX
 #define MAXIMUM_NO_TRIES      100
 
 const double EPSILON = 0.001;
@@ -27,7 +26,7 @@ const double EPSILON = 0.001;
 #define MAX(x,y)        ((x)>=(y)?(x):(y))
 #define MIN(x,y)        ((x)<=(y)?(x):(y))
 
-#define DEBUG( x )   
+#define DEBUG( x )
 
 #define TRACE( x )
 

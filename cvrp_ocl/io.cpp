@@ -216,16 +216,16 @@ void init_report(Problem *instance, int ntry)
     char temp_buffer[LINE_BUF_LEN];
     
     if (report_flag) {
-        sprintf(temp_buffer,"./report/best.%s",instance->name);
+        sprintf(temp_buffer,"../report/best.%s",instance->name);
         report = fopen(temp_buffer, "w");
         
-        sprintf(temp_buffer,"./report/best_so_far.%s",instance->name);
+        sprintf(temp_buffer,"../report/best_so_far.%s",instance->name);
         best_so_far_report = fopen(temp_buffer, "a");
         
-        sprintf(temp_buffer,"./report/iter.%s",instance->name);
+        sprintf(temp_buffer,"../report/iter.%s",instance->name);
         iter_report = fopen(temp_buffer, "w");
         
-        sprintf(temp_buffer,"./report/anneal.%s",instance->name);
+        sprintf(temp_buffer,"../report/anneal.%s",instance->name);
         anneal_report = fopen(temp_buffer, "w");
     } else {
         report = NULL;
@@ -409,7 +409,7 @@ void read_instance_file(Problem *instance, const char *vrp_file_name)
     }
     printf("\nreading vrp-file %s ... \n\n", vrp_file_name);
     
-    instance->max_distance = LONG_MAX;
+    instance->max_distance = INFINITY;
     instance->service_time = 0;
     instance->optimum = 0;
     

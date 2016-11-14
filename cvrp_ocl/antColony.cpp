@@ -21,7 +21,7 @@
 #include <time.h>
 
 #include "antColony.h"
-#include "g_sa.h"
+#include "gpu/g_sa.h"
 #include "utilities.h"
 #include "vrpHelper.h"
 #include "problem.h"
@@ -77,7 +77,7 @@ void AntColony::init_aco()
     
     /* Initialize variables concerning statistics etc. */
     instance->iteration   = 0;
-    best_so_far_ant->tour_length = INFTY;
+    best_so_far_ant->tour_length = INFINITY;
     
     instance->iter_stagnate_cnt = 0;
     instance->best_stagnate_cnt = 0;
@@ -261,7 +261,7 @@ void AntColony::ras_update( void )
                 target = k;
             }
         }
-        help_b[target] = LONG_MAX;
+        help_b[target] = INFINITY;
         global_update_pheromone_weighted(&ants[target], ras_ranks-i-1);
     }
     global_update_pheromone_weighted(best_so_far_ant, ras_ranks);
@@ -740,7 +740,7 @@ void AntColony::choose_closest_next( AntStruct *a, int phase )
     next_node = num_node;
     DEBUG( assert ( phase > 0 && phase < 2*num_node-2 ); );
     current_node = a->tour[phase-1];
-    min_distance = INFTY;             /* Search shortest edge */    
+    min_distance = INFINITY;             /* Search shortest edge */
     for ( node = 0 ; node < num_node ; node++ ) {
         if ( a->visited[node] ) {
             ; /* node already visited */

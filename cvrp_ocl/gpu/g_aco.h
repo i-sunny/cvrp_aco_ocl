@@ -10,9 +10,9 @@
 #define g_aco_h
 
 #include <stdio.h>
-#include "problem.h"
+#include "../problem.h"
 #include "g_type.h"
-#include "antColony.h"
+#include "../antColony.h"
 
 class g_ACO {
 public:

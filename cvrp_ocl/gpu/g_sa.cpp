@@ -16,9 +16,9 @@
 #include <assert.h>
 
 #include "g_sa.h"
-#include "utilities.h"
-#include "timer.h"
-#include "io.h"
+#include "../utilities.h"
+#include "../timer.h"
+#include "../io.h"
 
 bool tabu_flag = true;
 
