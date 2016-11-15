@@ -13,7 +13,7 @@ SUBDIR = gpu
 TIMER=unix
 LDLIBS=-lm
 
-OBJS= $(SUBDIR)/g_type.o $(SUBDIR)/g_aco.o $(SUBDIR)/g_sa.o antColony.o io.o localSearch.o main.o $(TIMER)_timer.o move.o neighbourSearch.o parallelAco.o problem.o utilities.o vrpHelper.o
+OBJS= $(SUBDIR)/g_type.o $(SUBDIR)/g_aco.o $(SUBDIR)/g_sa.o antColony.o io.o localSearch.o main.o $(TIMER)_timer.o move.o neighbourSearch.o parallelAco.o problem.o utilities.o vrpHelper.o OpenCLInfo.o
 EXE=main
 
 
@@ -47,6 +47,8 @@ problem.o: problem.cpp problem.h
 utilities.o: utilities.cpp utilities.h
 
 vrpHelper.o: vrpHelper.cpp vrpHelper.h
+
+OpenCLInfo.o: OpenCLInfo.cpp OpenCLInfo.h
 
 $(SUBDIR)/g_sa.o: 	g_sa.cpp g_sa.h
 $(SUBDIR)/g_aco: 	g_aco.cpp g_aco.h

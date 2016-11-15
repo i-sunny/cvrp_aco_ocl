@@ -26,7 +26,7 @@ const float EPSILON = 0.001f;
 #define MAX(x,y)        ((x)>=(y)?(x):(y))
 #define MIN(x,y)        ((x)<=(y)?(x):(y))
 
-#define DEBUG( x )
+#define DEBUG( x ) 
 
 #define TRACE( x )
 

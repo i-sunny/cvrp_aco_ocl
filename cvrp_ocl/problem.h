@@ -69,7 +69,7 @@ struct AntStruct {
     int  tour_size;     /* 路程中经过的点个数（depot可能出现多次） */
     float  tour_length;     /* 车辆路程行走长度 */
     bool      *visited;      /* mark nodes visited status */
-    bool      *demand_meet_node;  /** 所有可配送的点(单次route中，目前车辆可以仍可配送的点) */
+    bool      *candidate;  /** 所有可配送的点(单次route中，目前车辆可以仍可配送的点) */
 };
 
 

@@ -15,6 +15,7 @@
 #else
 #include <CL/cl.h>
 #endif
+
 #include "../problem.h"
 
 enum class kernel_t

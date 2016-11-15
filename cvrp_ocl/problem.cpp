@@ -67,7 +67,7 @@ void exit_problem(Problem *instance)
     for (int i = 0 ; i < instance->n_ants ; i++ ) {
         free( instance->ants[i].tour );
         free( instance->ants[i].visited );
-        free( instance->ants[i].demand_meet_node );
+        free( instance->ants[i].candidate );
     }
     free( instance->ants );
     free( instance->best_so_far_ant->tour );
@@ -159,7 +159,7 @@ void allocate_ants (Problem *instance)
     for (i = 0 ; i < instance->n_ants ; i++) {
         ants[i].tour        = (int *)calloc(2*instance->num_node-1, sizeof(int));   // tour最长为2 * num_node - 1
         ants[i].visited     = (bool *)calloc(instance->num_node, sizeof(bool));
-        ants[i].demand_meet_node = (bool *)calloc(instance->num_node, sizeof(bool));
+        ants[i].candidate = (bool *)calloc(instance->num_node, sizeof(bool));
     }
     
     if((best_so_far_ant = (AntStruct *)malloc(sizeof(AntStruct))) == NULL){

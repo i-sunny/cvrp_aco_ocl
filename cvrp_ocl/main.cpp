@@ -71,9 +71,7 @@ int main(int argc, char *argv[])
         start_timers();
         
         char *filename = parse_commandline(argc, argv);
-        sprintf(filename, "/Users/sunny/Desktop/cvrp_proj/src/cvrp_aco_ocl/dataset/CMT%d.vrp", i);
-//        linux
-//        sprintf(filename, "../dataset/CMT%d.vrp", i);
+        sprintf(filename, "../dataset/CMT%d.vrp", i);
         
         
         read_instance_file(instance, filename);

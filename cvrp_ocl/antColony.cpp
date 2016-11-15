@@ -175,7 +175,7 @@ void AntColony::construct_ant_solution(AntStruct *ant)
     
     int path_load;          /* 单次从depot出发的送货量 */
     int next_node, current_node;
-    int i, demand_meet_cnt, step;
+    int i, candidate_cnt, step;
     float path_distance;
     
     /* Mark all nodes as unvisited */
@@ -191,16 +191,16 @@ void AntColony::construct_ant_solution(AntStruct *ant)
         step++;
         
         /* 查看所有可以派送的点 */
-        demand_meet_cnt = 0;
+        candidate_cnt = 0;
         for (i = 0; i < num_node; i++) {
-            ant->demand_meet_node[i] = FALSE;
+            ant->candidate[i] = FALSE;
         }
         for(i = 0; i < num_node; i++) {
             if (ant->visited[i] == FALSE
                 && path_load + nodeptr[i].demand <= vehicle_capacity
                 && path_distance + (distance[current_node][i] + instance->service_time) + distance[i][0] <= instance->max_distance) {
-                ant->demand_meet_node[i] = TRUE;
-                demand_meet_cnt++;
+                ant->candidate[i] = TRUE;
+                candidate_cnt++;
             }
         }
         
@@ -208,7 +208,7 @@ void AntColony::construct_ant_solution(AntStruct *ant)
          1)如果没有可行的配送点,则蚂蚁回到depot，重新开始新的路径
          2）否则，选择下一个配送点
          */
-        if (demand_meet_cnt == 0) {
+        if (candidate_cnt == 0) {
             path_load = 0;
             path_distance = 0;
             init_ant_place(ant, step);
@@ -660,7 +660,7 @@ int AntColony::choose_best_next( AntStruct *a, int phase )
     for ( node = 0 ; node < num_node ; node++ ) {
         if ( a->visited[node] ) {
             ; /* node already visited, do nothing */
-        } else if(a->demand_meet_node[node] == FALSE) {
+        } else if(a->candidate[node] == FALSE) {
             ;  /* 该点不满足要求 */
         } else {
             if ( total_info[current_node][node] > value_best ) {
@@ -701,7 +701,7 @@ int AntColony::neighbour_choose_best_next( AntStruct *a, int phase )
         help_node = nn_list[current_node][i];
         if ( a->visited[help_node] ) {
             ;   /* node already visited, do nothing */
-        } else if(a->demand_meet_node[help_node] == FALSE) {
+        } else if(a->candidate[help_node] == FALSE) {
             ;  /* 该点不满足要求 */
         } else {
             help = total_info[current_node][help_node];
@@ -744,7 +744,7 @@ void AntColony::choose_closest_next( AntStruct *a, int phase )
     for ( node = 0 ; node < num_node ; node++ ) {
         if ( a->visited[node] ) {
             ; /* node already visited */
-        } else if(a->demand_meet_node[node] == FALSE) {
+        } else if(a->candidate[node] == FALSE) {
             ;  /* 该点不满足要求 */
         } else {
             if ( distance[current_node][node] < min_distance) {
@@ -784,7 +784,7 @@ int AntColony::neighbour_choose_and_move_to_next(AntStruct *a, int phase)
         neighbour_node = nn_list[current_node][i];
         if ( a->visited[neighbour_node] ) {
             prob_ptr[i] = 0.0;   /* node already visited */
-        } else if(a->demand_meet_node[neighbour_node] == FALSE) {
+        } else if(a->candidate[neighbour_node] == FALSE) {
             prob_ptr[i] = 0.0;  /* 该点不满足要求 */
         } else {
             DEBUG( assert ( neighbour_node >= 0 && neighbour_node < num_node ); )

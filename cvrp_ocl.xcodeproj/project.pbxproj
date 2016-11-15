@@ -24,6 +24,7 @@
 		A3077BE71DD759FA0094284E /* g_type.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BE21DD759FA0094284E /* g_type.cpp */; };
 		A3077BE81DD759FA0094284E /* kernel.cl in Sources */ = {isa = PBXBuildFile; fileRef = A3077BE41DD759FA0094284E /* kernel.cl */; };
 		A37DAC9F1DB51EBC0009F63A /* OpenCL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A37DAC9E1DB51EBC0009F63A /* OpenCL.framework */; };
+		A3AD5B951DDAEF0200928BD7 /* OpenCLInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3AD5B941DDAEF0200928BD7 /* OpenCLInfo.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -70,6 +71,8 @@
 		A3077BE41DD759FA0094284E /* kernel.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; name = kernel.cl; path = gpu/kernel.cl; sourceTree = "<group>"; };
 		A37DAC841DB501B10009F63A /* cvrp_ocl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cvrp_ocl; sourceTree = BUILT_PRODUCTS_DIR; };
 		A37DAC9E1DB51EBC0009F63A /* OpenCL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenCL.framework; path = System/Library/Frameworks/OpenCL.framework; sourceTree = SDKROOT; };
+		A3AD5B941DDAEF0200928BD7 /* OpenCLInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OpenCLInfo.cpp; path = gpu/OpenCLInfo.cpp; sourceTree = "<group>"; };
+		A3AD5B961DDAEFFC00928BD7 /* OpenCLInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OpenCLInfo.h; path = gpu/OpenCLInfo.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,13 +90,14 @@
 		A3077BBB1DD759D30094284E /* gpu */ = {
 			isa = PBXGroup;
 			children = (
+				A3AD5B971DDAF09700928BD7 /* lib */,
+				A3077BE41DD759FA0094284E /* kernel.cl */,
 				A3077BDE1DD759FA0094284E /* g_aco.cpp */,
 				A3077BDF1DD759FA0094284E /* g_aco.h */,
 				A3077BE01DD759FA0094284E /* g_sa.cpp */,
 				A3077BE11DD759FA0094284E /* g_sa.h */,
 				A3077BE21DD759FA0094284E /* g_type.cpp */,
 				A3077BE31DD759FA0094284E /* g_type.h */,
-				A3077BE41DD759FA0094284E /* kernel.cl */,
 			);
 			name = gpu;
 			sourceTree = "<group>";
@@ -143,6 +147,15 @@
 				A3077BBB1DD759D30094284E /* gpu */,
 			);
 			path = cvrp_ocl;
+			sourceTree = "<group>";
+		};
+		A3AD5B971DDAF09700928BD7 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				A3AD5B941DDAEF0200928BD7 /* OpenCLInfo.cpp */,
+				A3AD5B961DDAEFFC00928BD7 /* OpenCLInfo.h */,
+			);
+			name = lib;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -203,6 +216,7 @@
 			files = (
 				A3077BE71DD759FA0094284E /* g_type.cpp in Sources */,
 				A3077BD91DD759EA0094284E /* parallelAco.cpp in Sources */,
+				A3AD5B951DDAEF0200928BD7 /* OpenCLInfo.cpp in Sources */,
 				A3077BD61DD759EA0094284E /* Makefile in Sources */,
 				A3077BE51DD759FA0094284E /* g_aco.cpp in Sources */,
 				A3077BDA1DD759EA0094284E /* problem.cpp in Sources */,

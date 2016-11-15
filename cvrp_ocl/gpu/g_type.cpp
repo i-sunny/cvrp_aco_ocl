@@ -10,18 +10,26 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+
 #include "g_type.h"
+#include "OpenCLInfo.h"
 
 using namespace std;
+bool display_ocl_flag = false;
 
-static const char *kernelSrcPath = { "/Users/sunny/Desktop/cvrp_proj/src/cvrp_aco_ocl/cvrp_ocl/gpu/kernel.cl" };
-//static const char *kernelSrcPath = { "./gpu/kernel.cl" };
+
+static const char *kernelSrcPath = { "./gpu/kernel.cl" };
 
 OpenclEnv::OpenclEnv(Problem &instance) : instance(instance)
 {
     cl_int errNum;
     cl_uint numPlatforms;
     size_t size;
+    
+    // display all opencl devices
+    if (display_ocl_flag) {
+        display_ocl_info();
+    }
     
     // 选择opencl platform
     errNum = clGetPlatformIDs(1, &platformId, &numPlatforms);
@@ -36,7 +44,7 @@ OpenclEnv::OpenclEnv(Problem &instance) : instance(instance)
     };
     
     // create opencl context on the platform
-    context = clCreateContextFromType(cps, CL_DEVICE_TYPE_CPU, NULL, NULL, &errNum);
+    context = clCreateContextFromType(cps, CL_DEVICE_TYPE_GPU, NULL, NULL, &errNum);
     if (errNum != CL_SUCCESS) {
         cout << "Could not create GPU context" << endl;
     }
@@ -52,6 +60,12 @@ OpenclEnv::OpenclEnv(Problem &instance) : instance(instance)
     if (program == NULL) {
         exit(EXIT_FAILURE);
     }
+    
+    // build log
+    errNum = clGetProgramBuildInfo(program, deviceId, CL_PROGRAM_BUILD_LOG, 0, NULL, &size);
+    void *buffer = calloc(size, sizeof(char));
+    errNum = clGetProgramBuildInfo(program, deviceId, CL_PROGRAM_BUILD_LOG, size, buffer, NULL);
+    printf("\n\nOpenCL Buildlog:   %s\n\n", (char *)buffer);
     
     // get device information
     clGetDeviceInfo(deviceId, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(size_t), &numComputeUnits, &size);

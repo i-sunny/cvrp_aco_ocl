@@ -1,10 +1,16 @@
-//
-//  ocl_aco.cpp
-//  cvrp_ocl
-//
-//  Created by 孙晓奇 on 2016/11/7.
-//  Copyright © 2016年 xiaoqi.sxq. All rights reserved.
-//
+/*********************************
+ 
+ OCL-SACO: SACO for solving CVRP using OpenCL
+ 
+ Created by 孙晓奇 on 2016/11/11.
+ Copyright © 2016年 xiaoqi.sxq. All rights reserved.
+ 
+ Program's name: cvrp_ocl
+ Purpose: implementation of procedures for ants' behaviour
+ 
+ email: sunxq1991@gmail.com
+ 
+ *********************************/
 
 #include <iostream>
 #include <math.h>
@@ -20,9 +26,6 @@
 
 using namespace std;
 
-///
-//  Macros
-//
 #define check_error(a, b) check_error_file_line(a, b, __FILE__ , __LINE__)
 
 void check_error_file_line(int err_num, int expected, const char* file, const int line_number);
@@ -121,6 +124,9 @@ void g_ACO::exit_aco(void)
     update_best_so_far_from_mem();
 }
 
+/*
+ * aco iteration
+ */
 void g_ACO::run_aco_iteration()
 {
     
@@ -158,14 +164,16 @@ void g_ACO::construct_solutions(void)
 {
     cl_int err_num;
     const int grp_size = env.maxWorkGroupSize / 4;
-//    const int num_grps = (ceil)(1.0 * n_ants / grp_size);
+    const int num_grps = (ceil)(1.0 * n_ants / grp_size);
     
-    size_t global_work_size[1] = {static_cast<size_t>(n_ants)};
-    size_t local_work_size[1] = {1};
+    // global work size must be divisable by the local work size
+    size_t global_work_size[1] = {static_cast<size_t>(grp_size * num_grps)};
+    size_t local_work_size[1] = {static_cast<size_t>(grp_size)};
+    
     cl_kernel& construct_solution = env.get_kernel(kernel_t::construct_solution);
     
     // 1. set kernel arguments
-    err_num = clSetKernelArg(construct_solution, 0, sizeof(cl_int), &(instance.vehicle_capacity));
+    err_num = clSetKernelArg(construct_solution, 0, sizeof(int), &(instance.vehicle_capacity));
     err_num |= clSetKernelArg(construct_solution, 1, sizeof(float), &(instance.max_distance));
     err_num |= clSetKernelArg(construct_solution, 2, sizeof(float), &(instance.service_time));
     err_num |= clSetKernelArg(construct_solution, 3, sizeof(cl_mem), &seed_mem);
@@ -174,6 +182,8 @@ void g_ACO::construct_solutions(void)
     err_num |= clSetKernelArg(construct_solution, 6, sizeof(cl_mem), &total_info_mem);
     err_num |= clSetKernelArg(construct_solution, 7, sizeof(cl_mem), &solutions_mem);
     err_num |= clSetKernelArg(construct_solution, 8, sizeof(cl_mem), &solution_lens_mem);
+    err_num |= clSetKernelArg(construct_solution, 9, sizeof(float) * num_node, NULL);      // local memory for a colomn distance[*][0]
+    err_num |= clSetKernelArg(construct_solution, 10, sizeof(int) * num_node, NULL);       // local memory for demands
     check_error(err_num, CL_SUCCESS);
     
     // 2. queue the kernel up for executeion
@@ -184,7 +194,8 @@ void g_ACO::construct_solutions(void)
     
     /* ------ for debug ------- */
 //    int *result = new int[max_tour_sz * n_ants];
-//    err_num = clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE, 0, sizeof(int) * max_tour_sz * n_ants, result, 0, NULL, NULL);
+//    err_num = clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE, 0,
+//                                  sizeof(int) * max_tour_sz * n_ants, result, 0, NULL, NULL);
 //    check_error(err_num, CL_SUCCESS);
 //
 //    int i, j, beg, end;
@@ -215,16 +226,15 @@ void g_ACO::local_search(void)
     cl_kernel& local_search = env.get_kernel(kernel_t::local_search);
     
     // 1. set kernel arguments
-    err_num = clSetKernelArg(local_search, 0, sizeof(cl_mem), &seed_mem);
-    err_num |= clSetKernelArg(local_search, 1, sizeof(cl_int), &instance.nn_ls);
-    err_num |= clSetKernelArg(local_search, 2, sizeof(cl_mem), &nn_list_mem);
-    err_num |= clSetKernelArg(local_search, 3, sizeof(cl_mem), &distance_mem);
-    err_num |= clSetKernelArg(local_search, 4, sizeof(cl_mem), &solutions_mem);
-    err_num |= clSetKernelArg(local_search, 5, sizeof(cl_mem), &solution_lens_mem);
-    err_num |= clSetKernelArg(local_search, 6, sizeof(cl_mem), &demands_mem);
-    err_num |= clSetKernelArg(local_search, 7, sizeof(cl_int), &instance.vehicle_capacity);
-    err_num |= clSetKernelArg(local_search, 8, sizeof(float), &instance.max_distance);
-    err_num |= clSetKernelArg(local_search, 9, sizeof(float), &instance.service_time);
+    err_num = clSetKernelArg(local_search, 0, sizeof(cl_int), &instance.nn_ls);
+    err_num |= clSetKernelArg(local_search, 1, sizeof(cl_mem), &nn_list_mem);
+    err_num |= clSetKernelArg(local_search, 2, sizeof(cl_mem), &distance_mem);
+    err_num |= clSetKernelArg(local_search, 3, sizeof(cl_mem), &solutions_mem);
+    err_num |= clSetKernelArg(local_search, 4, sizeof(cl_mem), &solution_lens_mem);
+    err_num |= clSetKernelArg(local_search, 5, sizeof(cl_mem), &demands_mem);
+    err_num |= clSetKernelArg(local_search, 6, sizeof(cl_int), &instance.vehicle_capacity);
+    err_num |= clSetKernelArg(local_search, 7, sizeof(float), &instance.max_distance);
+    err_num |= clSetKernelArg(local_search, 8, sizeof(float), &instance.service_time);
     check_error(err_num, CL_SUCCESS);
     
     size_t global_work_size[1] = {static_cast<size_t>(n_ants)};
@@ -239,7 +249,8 @@ void g_ACO::local_search(void)
     /* ------ for debug ------- */
 //    // 3. get ant solutions from result
 //    int *result = new int[max_tour_sz * n_ants];
-//    err_num = clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE, 0, sizeof(int) * max_tour_sz * n_ants, result, 0, NULL, NULL);
+//    err_num = clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE, 0,
+//                                  sizeof(int) * max_tour_sz * n_ants, result, 0, NULL, NULL);
 //    check_error(err_num, CL_SUCCESS);
 //    
 //    int i, j, beg, end;
