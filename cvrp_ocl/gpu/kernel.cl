@@ -129,19 +129,27 @@ inline int choose_and_move_to_next(int current_node, int *rnd_seed,
     for (i = 0 ; i < NUM_NODE; i++) {
         sum_prob += candidate[i] * total_info_wrk[i];
     }
-
     
-    /* chose one according to the selection probabilities */
-    rnd = ran01(rnd_seed) * sum_prob;
-    
-    i = 0;
-    partial_sum = candidate[i] * total_info_wrk[i];
-    while (partial_sum < rnd) {
-        i++;
-        partial_sum += candidate[i] * total_info_wrk[i];
+    if (sum_prob <= 0.0f) {
+        return choose_best_next(total_info_wrk, candidate);
+        printf("oops! we have a bug!");
+    } else {
+        /* chose one according to the selection probabilities */
+        rnd = ran01(rnd_seed) * sum_prob;
+        
+        i = 0;
+        partial_sum = candidate[i] * total_info_wrk[i];
+        while (partial_sum <= rnd) {
+            i++;
+            partial_sum += candidate[i] * total_info_wrk[i];
+            if(i == NUM_NODE) {
+                // This may very rarely happen because of rounding if rnd is close to 1.
+                printf("omg! It happens!\n");
+                return choose_best_next(total_info_wrk, candidate);
+            }
+        }
+        return i;
     }
-    
-    return i;
 }
 
 /******** local search ********/

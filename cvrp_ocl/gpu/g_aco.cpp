@@ -210,8 +210,7 @@ void g_ACO::construct_solutions(void)
 //            ant->tour[j] = result[j + beg];
 //        }
 //        ant->tour_length = compute_tour_length(&instance, ant->tour, ant->tour_size);
-//        DEBUG(assert(check_solution(&instance, ant->tour, ant->tour_size));)
-//        print_solution(&instance, ant->tour, ant->tour_size);
+//        assert(check_solution(&instance, ant->tour, ant->tour_size));
 //    }
 //    
 //    delete[] result;
@@ -247,7 +246,6 @@ void g_ACO::local_search(void)
     check_error(err_num, CL_SUCCESS);
     
     /* ------ for debug ------- */
-//    // 3. get ant solutions from result
 //    int *result = new int[max_tour_sz * n_ants];
 //    err_num = clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE, 0,
 //                                  sizeof(int) * max_tour_sz * n_ants, result, 0, NULL, NULL);
@@ -256,7 +254,6 @@ void g_ACO::local_search(void)
 //    int i, j, beg, end;
 //    AntStruct *ant;
 //    
-//    printf("\n---- after alcal search -----\n");
 //    for (i = 0; i < n_ants; i++) {
 //        ant = &instance.ants[i];
 //        beg = i * max_tour_sz;
@@ -266,8 +263,7 @@ void g_ACO::local_search(void)
 //            ant->tour[j] = result[j + beg];
 //        }
 //        ant->tour_length = compute_tour_length(&instance, ant->tour, ant->tour_size);
-//        DEBUG(assert(check_solution(&instance, ant->tour, ant->tour_size));)
-//        print_solution(&instance, ant->tour, ant->tour_size);
+//        assert(check_solution(&instance, ant->tour, ant->tour_size));
 //    }
 //    
 //    delete[] result;
