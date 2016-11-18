@@ -186,7 +186,7 @@ void g_ACO::local_search(void)
                                      0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
     
-    /* ------ for debug ------- */
+    /* ------ debug check solutions ------- */
 //    int *result = new int[max_tour_sz * n_ants];
 //    err_num = clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE, 0,
 //                                  sizeof(int) * max_tour_sz * n_ants, result, 0, NULL, NULL);
@@ -194,7 +194,6 @@ void g_ACO::local_search(void)
 //    
 //    int i, j, beg, end;
 //    AntStruct *ant;
-//
 //    for (i = 0; i < n_ants; i++) {
 //        ant = &instance.ants[i];
 //        beg = i * max_tour_sz;
