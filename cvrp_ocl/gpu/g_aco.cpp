@@ -51,7 +51,6 @@ g_ACO::~g_ACO()
     clReleaseMemObject(bsf_records_mem);
     clReleaseMemObject(num_bsf_mem);
     clReleaseMemObject(elite_ids_mem);
-    
     clReleaseMemObject(best_result_val);
     clReleaseMemObject(best_result_idx);
 }
