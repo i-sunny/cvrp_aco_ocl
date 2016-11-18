@@ -7,14 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A3077BD21DD759EA0094284E /* antColony.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BBC1DD759EA0094284E /* antColony.cpp */; };
 		A3077BD31DD759EA0094284E /* io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BBE1DD759EA0094284E /* io.cpp */; };
 		A3077BD41DD759EA0094284E /* localSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BC01DD759EA0094284E /* localSearch.cpp */; };
 		A3077BD51DD759EA0094284E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BC21DD759EA0094284E /* main.cpp */; };
 		A3077BD61DD759EA0094284E /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = A3077BC31DD759EA0094284E /* Makefile */; };
 		A3077BD71DD759EA0094284E /* move.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BC41DD759EA0094284E /* move.cpp */; };
 		A3077BD81DD759EA0094284E /* neighbourSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BC61DD759EA0094284E /* neighbourSearch.cpp */; };
-		A3077BD91DD759EA0094284E /* parallelAco.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BC81DD759EA0094284E /* parallelAco.cpp */; };
 		A3077BDA1DD759EA0094284E /* problem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BCA1DD759EA0094284E /* problem.cpp */; };
 		A3077BDB1DD759EA0094284E /* unix_timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BCD1DD759EA0094284E /* unix_timer.cpp */; };
 		A3077BDC1DD759EA0094284E /* utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BCE1DD759EA0094284E /* utilities.cpp */; };
@@ -40,8 +38,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		A3077BBC1DD759EA0094284E /* antColony.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = antColony.cpp; sourceTree = "<group>"; };
-		A3077BBD1DD759EA0094284E /* antColony.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = antColony.h; sourceTree = "<group>"; };
 		A3077BBE1DD759EA0094284E /* io.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = io.cpp; sourceTree = "<group>"; };
 		A3077BBF1DD759EA0094284E /* io.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = io.h; sourceTree = "<group>"; };
 		A3077BC01DD759EA0094284E /* localSearch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = localSearch.cpp; sourceTree = "<group>"; };
@@ -52,8 +48,6 @@
 		A3077BC51DD759EA0094284E /* move.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = move.h; sourceTree = "<group>"; };
 		A3077BC61DD759EA0094284E /* neighbourSearch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = neighbourSearch.cpp; sourceTree = "<group>"; };
 		A3077BC71DD759EA0094284E /* neighbourSearch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = neighbourSearch.h; sourceTree = "<group>"; };
-		A3077BC81DD759EA0094284E /* parallelAco.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = parallelAco.cpp; sourceTree = "<group>"; };
-		A3077BC91DD759EA0094284E /* parallelAco.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parallelAco.h; sourceTree = "<group>"; };
 		A3077BCA1DD759EA0094284E /* problem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = problem.cpp; sourceTree = "<group>"; };
 		A3077BCB1DD759EA0094284E /* problem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = problem.h; sourceTree = "<group>"; };
 		A3077BCC1DD759EA0094284E /* timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = timer.h; sourceTree = "<group>"; };
@@ -62,8 +56,8 @@
 		A3077BCF1DD759EA0094284E /* utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utilities.h; sourceTree = "<group>"; };
 		A3077BD01DD759EA0094284E /* vrpHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vrpHelper.cpp; sourceTree = "<group>"; };
 		A3077BD11DD759EA0094284E /* vrpHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vrpHelper.h; sourceTree = "<group>"; };
-		A3077BDE1DD759FA0094284E /* g_aco.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = g_aco.cpp; path = gpu/g_aco.cpp; sourceTree = "<group>"; };
-		A3077BDF1DD759FA0094284E /* g_aco.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = g_aco.h; path = gpu/g_aco.h; sourceTree = "<group>"; };
+		A3077BDE1DD759FA0094284E /* g_aco.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = g_aco.cpp; path = gpu/g_aco.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		A3077BDF1DD759FA0094284E /* g_aco.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = g_aco.h; path = gpu/g_aco.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		A3077BE01DD759FA0094284E /* g_sa.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = g_sa.cpp; path = gpu/g_sa.cpp; sourceTree = "<group>"; };
 		A3077BE11DD759FA0094284E /* g_sa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = g_sa.h; path = gpu/g_sa.h; sourceTree = "<group>"; };
 		A3077BE21DD759FA0094284E /* g_type.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = g_type.cpp; path = gpu/g_type.cpp; sourceTree = "<group>"; };
@@ -122,8 +116,6 @@
 		A37DAC861DB501B10009F63A /* cvrp_ocl */ = {
 			isa = PBXGroup;
 			children = (
-				A3077BBC1DD759EA0094284E /* antColony.cpp */,
-				A3077BBD1DD759EA0094284E /* antColony.h */,
 				A3077BBE1DD759EA0094284E /* io.cpp */,
 				A3077BBF1DD759EA0094284E /* io.h */,
 				A3077BC01DD759EA0094284E /* localSearch.cpp */,
@@ -134,8 +126,6 @@
 				A3077BC51DD759EA0094284E /* move.h */,
 				A3077BC61DD759EA0094284E /* neighbourSearch.cpp */,
 				A3077BC71DD759EA0094284E /* neighbourSearch.h */,
-				A3077BC81DD759EA0094284E /* parallelAco.cpp */,
-				A3077BC91DD759EA0094284E /* parallelAco.h */,
 				A3077BCA1DD759EA0094284E /* problem.cpp */,
 				A3077BCB1DD759EA0094284E /* problem.h */,
 				A3077BCC1DD759EA0094284E /* timer.h */,
@@ -215,13 +205,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3077BE71DD759FA0094284E /* g_type.cpp in Sources */,
-				A3077BD91DD759EA0094284E /* parallelAco.cpp in Sources */,
 				A3AD5B951DDAEF0200928BD7 /* OpenCLInfo.cpp in Sources */,
 				A3077BD61DD759EA0094284E /* Makefile in Sources */,
 				A3077BE51DD759FA0094284E /* g_aco.cpp in Sources */,
 				A3077BDA1DD759EA0094284E /* problem.cpp in Sources */,
 				A3077BD81DD759EA0094284E /* neighbourSearch.cpp in Sources */,
-				A3077BD21DD759EA0094284E /* antColony.cpp in Sources */,
 				A3077BE81DD759FA0094284E /* kernel.cl in Sources */,
 				A3077BD71DD759EA0094284E /* move.cpp in Sources */,
 				A3077BD31DD759EA0094284E /* io.cpp in Sources */,

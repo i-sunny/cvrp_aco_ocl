@@ -75,12 +75,16 @@ OpenclEnv::OpenclEnv(Problem &instance) : instance(instance)
     krnl_table[static_cast<int>(kernel_t::local_search)] = clCreateKernel(program, "local_search", NULL);
     krnl_table[static_cast<int>(kernel_t::pheromone_init)] = clCreateKernel(program, "pheromone_init", NULL);
     krnl_table[static_cast<int>(kernel_t::pheromone_evaporation)] = clCreateKernel(program, "pheromone_evaporation", NULL);
-    krnl_table[static_cast<int>(kernel_t::ras_update)] = clCreateKernel(program, "ras_update", NULL);
-    krnl_table[static_cast<int>(kernel_t::pheromone_disturbance)] = clCreateKernel(program, "pheromone_disturbance", NULL);
+    krnl_table[static_cast<int>(kernel_t::pheromone_deposit)] = clCreateKernel(program, "pheromone_deposit", NULL);
     krnl_table[static_cast<int>(kernel_t::update_pheromone_weighted)] = clCreateKernel(program, "update_pheromone_weighted", NULL);
     krnl_table[static_cast<int>(kernel_t::compute_total_info)] = clCreateKernel(program, "compute_total_info", NULL);
-    krnl_table[static_cast<int>(kernel_t::update_statistics)] = clCreateKernel(program, "update_statistics", NULL);
-    krnl_table[static_cast<int>(kernel_t::update_best_so_far_to_mem)] = clCreateKernel(program, "update_best_so_far_to_mem", NULL);
+    krnl_table[static_cast<int>(kernel_t::get_elites)] = clCreateKernel(program, "get_elites", NULL);
+    krnl_table[static_cast<int>(kernel_t::update_best_so_far)] = clCreateKernel(program, "update_best_so_far", NULL);
+    krnl_table[static_cast<int>(kernel_t::update_best_so_far_to_device)] = clCreateKernel(program, "update_best_so_far_to_device", NULL);
+    krnl_table[static_cast<int>(kernel_t::best_solution_phase_0)] = clCreateKernel(program, "best_solution_phase_0", NULL);
+    krnl_table[static_cast<int>(kernel_t::best_solution_phase_1)] = clCreateKernel(program, "best_solution_phase_1", NULL);
+    
+    free(buffer);
 }
 
 OpenclEnv::~OpenclEnv()
@@ -91,6 +95,7 @@ OpenclEnv::~OpenclEnv()
     }
     clReleaseProgram(program);
     clReleaseContext(context);
+    clReleaseDevice(deviceId);
 }
 
 cl_command_queue OpenclEnv::createCommandQueue(cl_context context, cl_device_id *device)

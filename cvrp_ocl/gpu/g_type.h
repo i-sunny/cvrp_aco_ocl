@@ -24,13 +24,15 @@ enum class kernel_t
     local_search,
     pheromone_init,
     pheromone_evaporation,
-    ras_update,
-    pheromone_disturbance,
+    pheromone_deposit,
     update_pheromone_weighted,
     compute_total_info,
-    update_statistics,
-    update_best_so_far_to_mem,
-    LENGTH = update_best_so_far_to_mem+1
+    get_elites,
+    update_best_so_far,
+    update_best_so_far_to_device,
+    best_solution_phase_0,
+    best_solution_phase_1,
+    LENGTH = best_solution_phase_1+1
 };
 
 class OpenclEnv

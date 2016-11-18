@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include "../problem.h"
 #include "g_type.h"
-#include "../antColony.h"
 
 class g_ACO {
 public:
@@ -27,15 +26,15 @@ public:
     void update_statistics(void);
     void pheromone_update(void);
     
+    void pheromone_init(float trail_0);
     void pheromone_evaporation(void);
-    void ras_update(void);
-    void pheromone_disturbance(void);
+    void pheromone_deposit(void);
     void compute_total_info(void);
     void update_pheromone_weighted(AntStruct *a, int weight);
     
     void copy_solution_from_to(AntStruct *a1, AntStruct *a2);
-    void update_best_so_far_from_mem(void);    // best-so-far from device to host memory
-    void update_best_so_far_to_mem(void);      // best-so-far from host to device memory
+    void update_best_so_far_from_device(void);    // best-so-far from device to host memory
+    void update_best_so_far_to_device(void);      // best-so-far from host to device memory
     
 private:
     OpenclEnv& env;
@@ -52,8 +51,19 @@ private:
     cl_mem pheromone_mem;
     cl_mem total_info_mem;
     cl_mem nn_list_mem;
-    cl_mem seed_mem;            // seeds for all ants
+    cl_mem seed_mem;             // seeds for all ants
+    cl_mem bsf_records_mem;   // record all best-so-far solutions information
+    cl_mem num_bsf_mem;          // counter of best-so-far solutions records
+    cl_mem elite_ids_mem;        // ids of solutions of all `ras_rank` elite ants
+    
+    cl_mem best_result_val;      // especially for find_best_solution()
+    cl_mem best_result_idx;      // especially for find_best_solution()
     
     void create_memory_objects(void);
+    void find_best_solution(void);
+    void update_best_so_far(void);
+    void get_elites(void);
 };
+
 #endif /* g_aco_h */
+

@@ -59,17 +59,24 @@ struct Route {
     float dist;                    /* route distance */
 };
 
+/* best-so-far soution information */
+struct BestSolutionInfo {
+    int     iter;           // iteration of the best-so-far solution
+    float   length;         // tour length of solution
+    float   time;           // elapsed time
+};
+
 /*
  * ant tour consists of some single route.
  * a single route begin with depot(0) and end with depot(0),
  * i.e. tour = [0,1,4,2,0,5,3,0] toute1 = [0,1,4,2,0] route2 = [0,5,3,0]
  */
 struct AntStruct {
-    int  *tour;
-    int  tour_size;     /* 路程中经过的点个数（depot可能出现多次） */
-    float  tour_length;     /* 车辆路程行走长度 */
-    bool      *visited;      /* mark nodes visited status */
-    bool      *candidate;  /** 所有可配送的点(单次route中，目前车辆可以仍可配送的点) */
+    int     *tour;
+    int     tour_size;     /* 路程中经过的点个数（depot可能出现多次） */
+    float   tour_length;   /* 车辆路程行走长度 */
+    bool    *visited;      /* mark nodes visited status */
+    bool    *candidate;    /** 所有可配送的点(单次route中，目前车辆可以仍可配送的点) */
 };
 
 

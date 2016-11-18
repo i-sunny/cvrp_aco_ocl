@@ -411,7 +411,6 @@ void displayInfo(void)
     cl_int errNum;
     cl_uint numPlatforms;
     cl_platform_id * platformIds;
-    cl_context context = NULL;
 
 	// First, query the total number of platforms
     errNum = clGetPlatformIDs(0, NULL, &numPlatforms);
@@ -807,7 +806,5 @@ void displayInfo(void)
 //
 void display_ocl_info(void)
 {
-    cl_context context = 0;
-
 	displayInfo();
 }

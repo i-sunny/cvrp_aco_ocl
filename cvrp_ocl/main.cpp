@@ -12,15 +12,12 @@
 #include <math.h>
 
 #include "utilities.h"
-#include "antColony.h"
-#include "parallelAco.h"
 #include "problem.h"
 #include "timer.h"
 #include "io.h"
 #include "gpu/g_type.h"
 #include "gpu/g_aco.h"
 
-static bool parallel_flag  = true;  /* 是否使用并行算法 */
 static int tries = 15;
 
 /*
@@ -63,38 +60,36 @@ char* parse_commandline (int argc, char *argv [])
  */
 int main(int argc, char *argv[])
 {
-    for (int i = 1; i <= 1; i++) {
-    for (int ntry = 0 ; ntry < tries; ntry++)
+    for (int did = 1; did <= 1; did++)
     {
-        Problem *instance = new Problem(0);
-        
-        start_timers();
-        
         char *filename = parse_commandline(argc, argv);
-        sprintf(filename, "../dataset/CMT%d.vrp", i);
+        sprintf(filename, "../dataset/CMT%d.vrp", did);
         
-        
-        read_instance_file(instance, filename);
-        init_problem(instance);
-        init_report(instance, ntry);
-        
-        printf("Initialization took %.10f seconds\n", elapsed_time(VIRTUAL));
+        for (int ntry = 0 ; ntry < tries; ntry++)
+        {
+            Problem *instance = new Problem(0);
+            
+            start_timers();
+            
+            read_instance_file(instance, filename);
+            init_problem(instance);
+            init_report(instance, ntry);
+            
+            printf("Initialization took %.10f seconds\n", elapsed_time(VIRTUAL));
 
-        OpenclEnv cl_env(*instance);
-        g_ACO g_aco(cl_env, *instance);
+            OpenclEnv cl_env(*instance);
+            g_ACO g_aco(cl_env, *instance);
 
-        g_aco.init_aco();
-        while (!termination_condition(instance)) {
-            g_aco.run_aco_iteration();
-            instance->iteration++;
+            g_aco.init_aco();
+            while (!termination_condition(instance)) {
+                g_aco.run_aco_iteration();
+                instance->iteration++;
+            }
+            g_aco.exit_aco();
+            
+            exit_report(instance, ntry);
+            exit_problem(instance);
         }
-        g_aco.exit_aco();
-        
-        
-        exit_report(instance, ntry);
-        exit_problem(instance);
     }
-    }
-    
     return(0);
 }

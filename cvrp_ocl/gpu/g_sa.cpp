@@ -79,7 +79,7 @@ void SimulatedAnnealing::run(void)
     if (best_ant->tour_length - instance->best_so_far_ant->tour_length < -EPSILON) {
         g_aco->copy_solution_from_to(best_ant, instance->best_so_far_ant);
         // !!需要更新solutions and solution_lens 中的 best-so-far solution 相关信息
-        g_aco->update_best_so_far_to_mem();
+        g_aco->update_best_so_far_to_device();
         
         if (instance->pid == 0) {
             instance->best_so_far_time = elapsed_time(VIRTUAL);

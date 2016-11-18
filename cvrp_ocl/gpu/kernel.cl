@@ -4,13 +4,12 @@
 #define FALSE false
 
 #define EPSILON     0.001f
-#define DEBUG(x)   x
+#define DEBUG(x)    x
 /****** parameters ******/
 #define RHO         0.1f
 #define ALPHA       1.0f
 #define BETA        2.0f
 #define RAS_RANKS   6
-#define DELTA       0.7f
 /************************/
 
 
@@ -34,6 +33,12 @@
 
 #define MAX_TOUR_SZ  (2 * NUM_NODE)
 
+struct BestSolutionInfo {
+    int     iter;
+    float   length;
+    float   time;
+};
+
 inline float ran01(int *idum )
 {
     int k;
@@ -44,6 +49,26 @@ inline float ran01(int *idum )
     if (*idum < 0 ) *idum += IM;
     ans = AM * (*idum);
     return ans;
+}
+
+/*
+ * In OpenCL there is only atomic_add or atomic_mul for ints, and not for floats.
+ * http://simpleopencl.blogspot.com/2013/05/atomic-operations-and-floats-in-opencl.html
+ */
+inline void atomic_add_global(volatile global float *source, const float operand) {
+    union {
+        unsigned int intVal;
+        float floatVal;
+    } newVal;
+    union {
+        unsigned int intVal;
+        float floatVal;
+    } prevVal;
+    
+    do {
+        prevVal.floatVal = *source;
+        newVal.floatVal = prevVal.floatVal + operand;
+    } while (atomic_cmpxchg((volatile global unsigned int *)source, prevVal.intVal, newVal.intVal) != prevVal.intVal);
 }
 
 inline float compute_tour_length(__global float *distance, int *tour, int tour_size)
@@ -97,6 +122,7 @@ inline void print_single_route(__global float *distance, int *route, int route_s
 }
 
 /******* construct solutions *********/
+
 inline int choose_best_next(float *total_info_wrk, bool *candidate)
 {
     int node, next_node;
@@ -129,19 +155,27 @@ inline int choose_and_move_to_next(int current_node, int *rnd_seed,
     for (i = 0 ; i < NUM_NODE; i++) {
         sum_prob += candidate[i] * total_info_wrk[i];
     }
-
     
-    /* chose one according to the selection probabilities */
-    rnd = ran01(rnd_seed) * sum_prob;
-    
-    i = 0;
-    partial_sum = candidate[i] * total_info_wrk[i];
-    while (partial_sum < rnd) {
-        i++;
-        partial_sum += candidate[i] * total_info_wrk[i];
+    if (sum_prob <= 0.0f) {
+        return choose_best_next(total_info_wrk, candidate);
+        printf("oops! we have a bug!");
+    } else {
+        /* chose one according to the selection probabilities */
+        rnd = ran01(rnd_seed) * sum_prob;
+        
+        i = 0;
+        partial_sum = candidate[i] * total_info_wrk[i];
+        while (partial_sum <= rnd) {
+            i++;
+            partial_sum += candidate[i] * total_info_wrk[i];
+            if(i == NUM_NODE) {
+                // This may very rarely happen because of rounding if rnd is close to 1.
+                DEBUG(printf("omg! It happens!\n");)
+                return choose_best_next(total_info_wrk, candidate);
+            }
+        }
+        return i;
     }
-    
-    return i;
 }
 
 /******** local search ********/
@@ -341,154 +375,6 @@ inline void two_opt_solution(int *tour, int tour_size, __global float *distance,
     }
 }
 
-/*
- * The swap operation selects two customers at random and
- * then swaps these two customers in their positions.
- */
-inline void swap(int *tour, int tour_size,
-                 __global float *distance, __global int *demands,
-                 const int capacity, const float max_dist, const float service_time)
-{
-    /* array of single route load */
-    int route_load[NUM_NODE-1];
-    /* array of single route distance */
-    float route_dist[NUM_NODE-1];
-    
-    int beg;
-    int load = 0, load1 = 0, load2 = 0;
-    float dist = 0, dist1 = 0, dist2 = 0;
-
-    int i = 0, j = 0, k = 0;
-    float gain = 0;
-    int n1, p_n1, s_n1, n2, p_n2, s_n2;
-    int p1 = 0, p2 = 0;     /* path idx of node n1 and n2 */
-    
-    
-    // 1) step 1: 获取load/distance array
-    load = 0;
-    dist = 0;
-    k = 0;
-    beg = 0;
-    for (i = 1; i < tour_size; i++) {
-        load += demands[tour[i]];
-        dist += distance[tour[i-1] * NUM_NODE + tour[i]];
-        
-        if (tour[i] == 0) {
-            route_load[k] = load;
-            route_dist[k] = dist + service_time * (i - beg - 1);
-
-            k++;
-            load = 0;
-            dist = 0;
-            beg = i;
-        }
-    }
-    
-    // 2）step 2: swap
-    for (i = 1; i < tour_size; i++) {
-        n1 = tour[i];
-        if (n1 == 0) {
-            p1++;
-            continue;
-        }
-        p_n1 = tour[i-1];
-        s_n1 = tour[i+1];
-        
-        
-        p2 = p1;
-        for (j = i+1; j < tour_size; j++) {
-            n2 = tour[j];
-            if (n2 == 0) {
-                p2++;
-                continue;
-            }
-            p_n2 = tour[j-1];
-            s_n2 = tour[j+1];
-            
-            // calulate gain
-            if (j == i + 1) {
-                gain = -(distance[p_n1 * NUM_NODE + n1] + distance[n2 * NUM_NODE + s_n2])
-                + (distance[p_n1 * NUM_NODE + n2] + distance[n1 * NUM_NODE + s_n2]);
-            } else {
-                gain = -(distance[p_n1 * NUM_NODE + n1] + distance[n1 * NUM_NODE + s_n1]
-                         + distance[p_n2 * NUM_NODE + n2] + distance[n2 * NUM_NODE + s_n2])
-                + (distance[p_n1 * NUM_NODE + n2] + distance[n2 * NUM_NODE + s_n1]
-                   + distance[p_n2 * NUM_NODE + n1] + distance[n1 * NUM_NODE + s_n2]);
-            }
-            if (gain < -EPSILON) {
-                
-                // node n1 and n2 not in the same route
-                if (p1 != p2) {
-                    load1 = route_load[p1] - demands[n1] + demands[n2];
-                    load2 = route_load[p2] - demands[n2] + demands[n1];
-                    
-                    dist1 = route_dist[p1] - (distance[p_n1 * NUM_NODE + n1] + distance[n1 * NUM_NODE + s_n1])
-                    + (distance[p_n1 * NUM_NODE + n2] + distance[n2 * NUM_NODE + s_n1]);
-                    
-                    dist2 = route_dist[p2] - (distance[p_n2 * NUM_NODE + n2] + distance[n2 * NUM_NODE + s_n2])
-                    + (distance[p_n2 * NUM_NODE + n1] + distance[n1 * NUM_NODE + s_n2]);
-                    
-                    if ((load1 > capacity || load2 > capacity) || (dist1 > max_dist || dist2 > max_dist)) {
-                        continue;
-                    }
-                } else {
-                    load1 = route_load[p1];
-                    load2 = load1;
-                    
-                    dist1 = route_dist[p1] + gain;   // gain < 0, so dont need to check max_distance limit
-                    dist2 = dist1;
-                }
-                
-                
-                tour[i] = n2;
-                tour[j] = n1;
-                
-                route_load[p1] = load1;
-                route_load[p2] = load2;
-                
-                route_dist[p1] = dist1;
-                route_dist[p2] = dist2;
-                
-                i--;
-                //                print_solution(instance, tour, tour_size);
-                break;
-            }
-        }
-    }
-}
-
-/******** pheromone update ********/
-//inline void update_pheromone_weighted(__global float *pheromone,
-//                                      __global int *tour, int tour_size,
-//                                      float tour_length, int weight)
-//{
-//    int      i, j, h;
-//    float   d_tau;
-//
-//    d_tau = weight / tour_length;
-//    for (i = 0; i < tour_size - 1; i++) {
-//        j = tour[i];
-//        h = tour[i+1];
-//        pheromone[j * NUM_NODE + h] += d_tau;
-//    }
-//}
-
-
-inline int find_best(__global float *solution_lens)
-{
-    float   min;
-    int   k, k_min;
-    
-    min = solution_lens[0];
-    k_min = 0;
-    for(k = 1; k < N_ANTS; k++) {
-        if(solution_lens[k] < min ) {
-            min = solution_lens[k];
-            k_min = k;
-        }
-    }
-    return k_min;
-}
 
 /*********************************************************
                       kernels
@@ -546,7 +432,6 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
         
     
         /* Mark all nodes as unvisited */
-        visited_cnt = 0;
         for(i = 0; i < NUM_NODE; i++) {
             visited[i] = FALSE;
         }
@@ -555,12 +440,14 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
         path_dist = 0;
         tour_dist = 0;
         step = 0;
+        
         // init ant place
         visited[0] = TRUE;
         tour[step] = 0;
-        current_node = tour[step];
+        visited_cnt = 1;
+        current_node = 0;
         
-        while (visited_cnt < NUM_NODE - 1) {
+        while (visited_cnt < NUM_NODE) {
             step++;
             candidate_cnt = 0;
             
@@ -651,14 +538,6 @@ __kernel void local_search(const int nn_ls, __global int *nn_list,
     // 1) 2-opt local search
     two_opt_solution(tour_wrk, tour_size, distance, nn_list, nn_ls, dist_tour_wrk);
     
-    /* 
-     * 2) swap - exchange 2 nodes in a tour
-     * 暂时不使用swap()操作, 且swap()操作没有做内存优化
-     * 注意: 由于没有使用dist_tour_wrk对swap()进行优化,
-     * 因此如果直接使用没有内存优化的swap(), 则计算solution length的方式应该是：
-     * compute_tour_length(distance, tour_wrk, tour_size)
-     */
-//    swap(tour_wrk, tour_size, distance, demands, capacity, max_dist, serv_time);
     
     // !!update global memory
     for(int i = 0; i < tour_size; i++) {
@@ -670,42 +549,128 @@ __kernel void local_search(const int nn_ls, __global int *nn_list,
         len += dist_tour_wrk[i];
     }
     solution_lens[gid] = len;
+}
+
+
+/*
+ * update best so far solution after an iteration if better solution found
+ * number of threads: MAX_TOUR_SZ (>= tour_size) 即可
+ */
+__kernel void update_best_so_far(__global int *solutions, __global float *solution_lens,
+                                 __global struct BestSolutionInfo *bsf_records, __global int *num_bsf,
+                                 float time, int iteration)
+{
+    int gid = get_global_id(0);
     
-//    solution_lens[gid] = compute_tour_length(distance, tour_wrk, tour_size);
-//    printf("len:%f \n", solution_lens[gid]);
+    __global int *best_tour, *iter_best_tour;
     
+    /*
+     * after call kernel best_solution_phase_1(),
+     * we have already got the iter-best solution
+     */
+    int idx = solutions[MAX_TOUR_SZ * (N_ANTS + 1)];
+    iter_best_tour = solutions + MAX_TOUR_SZ * idx;
+    int tour_size = iter_best_tour[MAX_TOUR_SZ - 1];
+    float len = solution_lens[idx];
+    
+    // better solution found
+    if(len - solution_lens[N_ANTS] < -EPSILON){
+        // update best-so-far solution
+        if (gid < tour_size) {
+            best_tour = solutions + MAX_TOUR_SZ * N_ANTS;
+            best_tour[gid] = iter_best_tour[gid];
+            
+            if (gid == 0) {
+                best_tour[MAX_TOUR_SZ - 1] = tour_size;
+                solution_lens[N_ANTS] = len;
+            }
+        }
+        
+        // record this best-so-far solution information
+        if(gid == 0) {
+            int pos = *num_bsf;
+            bsf_records[pos].iter = iteration;
+            bsf_records[pos].length = len;
+            bsf_records[pos].time = time;
+            DEBUG(printf("Best: iter: %d len: %f time: %.4f\n", iteration, len, time);)
+            *num_bsf = ++pos;
+        }
+    }
+}
+
+
+/*
+ * Finds the best solution with minimum length
+ * http://developer.amd.com/resources/articles-whitepapers/opencl-optimization-case-study-simple-reductions/
+ * Step 1 : reduce phase, find best solution for each group
+ */
+__kernel void best_solution_phase_0(int n_solutions, __global float* solution_lens,
+                                    __local float* scratch_val, __local int* scratch_idx,
+                                   __global float* result_val,  __global int* result_idx)
+{
+    int gid = get_global_id(0);
+    int lid = get_local_id(0);
+    
+    // Load data into local memory
+    if (gid < n_solutions) {
+        scratch_val[lid] = solution_lens[gid];
+    } else {
+        // Infinity is the identity element for the min operation
+        scratch_val[lid] = INFINITY;
+    }
+    scratch_idx[lid] = gid;
+    barrier(CLK_LOCAL_MEM_FENCE);
+    
+    // Apply reduction
+    for (int offset = get_local_size(0) / 2; offset > 0; offset /= 2)
+    {
+        if (lid < offset) {
+            float other = scratch_val[lid + offset];
+            float mine = scratch_val[lid];
+            if (other < mine) {
+                scratch_val[lid] = other;
+                scratch_idx[lid] = scratch_idx[lid + offset];
+            }
+            
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    if (lid == 0) {
+        int grp_id = get_group_id(0);
+        result_val[grp_id] = scratch_val[0];
+        result_idx[grp_id] = scratch_idx[0];
+    }
 }
 
 /*
- * update statistics 
- * number of threads: 1 
+ * Finds the best solution with minimum length
+ * Step 2: get best soltion from all work-groups' best solutions
+ * Note: It assumes that 'length' is very small (and so doesn't incur into
+ *       another reduction)
  */
-__kernel void update_statistics(__global int *solutions, __global float *solution_lens)
+__kernel void best_solution_phase_1(int num_grps, __global int *solutions,
+                              __global float* result_val, __global int* result_idx)
 {
-    __global int *best_tour, *iter_best_tour;
-    int     tour_size;
-    int     i, idx;
+    int gid = get_global_id(0);
     
-    
-    // find the iter-best solution
-    idx = find_best(solution_lens);
-    iter_best_tour = solutions + MAX_TOUR_SZ * idx;
-    tour_size = iter_best_tour[MAX_TOUR_SZ - 1];
- 
-    // update iter-best solution id
-    solutions[MAX_TOUR_SZ * (N_ANTS + 1)] = idx;
-    
-    // update best-so-far solution
-    best_tour = solutions + MAX_TOUR_SZ * N_ANTS;
-    if(solution_lens[idx] - solution_lens[N_ANTS] < -EPSILON){
-        // get better solution
-        for (i = 0; i < tour_size; i++) {
-            best_tour[i] = iter_best_tour[i];
+    if (gid == 0) {
+        float minval = result_val[0];
+        int minidx = result_idx[0];
+        
+        for (int i = 1; i < num_grps; i++) {
+            float x = result_val[i];
+            if (x < minval) {
+                minval = x;
+                minidx = result_idx[i];
+            }
         }
-        best_tour[MAX_TOUR_SZ - 1] = tour_size;
-        solution_lens[N_ANTS] = solution_lens[idx];
+        result_idx[0] = minidx;
+        
+        // update iter-best solution id
+        solutions[MAX_TOUR_SZ * (N_ANTS + 1)] = minidx;
     }
 }
+
 
 /*
  * pheromone init
@@ -726,13 +691,11 @@ __kernel void pheromone_init(float initial_trail, __global float *pheromone,
  */
 __kernel void pheromone_evaporation(__global float *pheromone)
 {
+    //    printf("begin pheromone_evaporation...\n");
     int gid = get_global_id(0);
-    
-//    printf("begin pheromone_evaporation...\n");
     
     /* Simulate the pheromone evaporation of all pheromones */
     pheromone[gid] = (1 - RHO) * pheromone[gid];
-    
 }
 
 /*
@@ -755,20 +718,18 @@ __kernel void update_pheromone_weighted(__global float *pheromone,
 }
 
 /*
- * pheromone update
+ * get elite ants
  * number of threads: 1
  */
-__kernel void ras_update(__global int *solutions, __global float *solution_lens,
-                         __global float *pheromone)
+__kernel void get_elites(__global float *solution_lens, __global int *elite_ids)
 {
-    __global int *tour, *best_tour;
-    int tour_size, best_tour_size;
-    
     int i, k, target;
     float help_b[N_ANTS], b;
 
-
-    /* apply the pheromone deposit */
+    // first, best-so-far solution
+    elite_ids[0] = N_ANTS;
+    
+    // then, get elite ants ids
     for (k = 0; k < N_ANTS; k++) {
         help_b[k] = solution_lens[k];
     }
@@ -782,35 +743,39 @@ __kernel void ras_update(__global int *solutions, __global float *solution_lens,
             }
         }
         help_b[target] = INFINITY;
-        tour = solutions + MAX_TOUR_SZ * target;
-        tour_size = tour[MAX_TOUR_SZ - 1];
-        update_pheromone_weighted(pheromone, tour, tour_size, solution_lens[target], RAS_RANKS-i-1);
+        elite_ids[i+1] = target;
     }
-    
-    // best so far tour store at the end of solutions memory
-    best_tour = solutions + MAX_TOUR_SZ * N_ANTS;
-    best_tour_size = best_tour[MAX_TOUR_SZ - 1];
-    update_pheromone_weighted(pheromone, best_tour, best_tour_size, solution_lens[N_ANTS], RAS_RANKS);
 }
 
 /*
- * 蚁群停滞时，加入扰动跳出局部最优解
- *  number of threads: 1
+ * work_group_size = MAX_TOUR_SZ
+ * num_grp = number of elite ants + best-so-far ant = RAS_RANKS
  */
-__kernel void pheromone_disturbance(__global float *pheromone)
+__kernel void pheromone_deposit(__global int *elite_ids,
+                                __global int *solutions, __global float *solution_lens,
+                                __global float *pheromone, __local int *tour_wrk)
 {
-//    printf("begin pheromone disturbance...\n");
-    int i;
-    float mean_pheromone = 0.0f;
-    int sz = NUM_NODE * NUM_NODE;
+    int lid = get_local_id(0);
+    int grp_id = get_group_id(0);   // 0 to RAS_RANKS - 1
+    int tid = elite_ids[grp_id];
     
-    for (i = 0; i < sz; i++) {
-        mean_pheromone += pheromone[i];
-    }
-    mean_pheromone = mean_pheromone / sz;
+    __global int *tour = solutions + tid * MAX_TOUR_SZ;
+    int tour_size = tour[MAX_TOUR_SZ-1];
+    float tour_length = solution_lens[tid];
+    
+    // [优化]局部内存优化
+    tour_wrk[lid] = tour[lid];
+    barrier(CLK_LOCAL_MEM_FENCE);
+    
+    // update pheromone int this tour
+    int weight = RAS_RANKS - grp_id;
+    float d_tau = 1.0f * weight / tour_length;
 
-    for (i = 0; i < sz; i++) {
-        pheromone[i] = (1- DELTA) * mean_pheromone + DELTA * pheromone[i];
+    if(lid < tour_size - 1) {
+        int j = tour_wrk[lid];
+        int h = tour_wrk[lid+1];
+        // !!多只蚂蚁同时对同一块内存写数据，需要原子操作
+        atomic_add_global(&(pheromone[j * NUM_NODE + h]), d_tau);
     }
 }
 
@@ -831,7 +796,7 @@ __kernel void compute_total_info(__global float *pheromone, __global float *tota
  * update host best-so-far solution to device memory
  * number of threads: 1
  */
-__kernel void update_best_so_far_to_mem(__global int *from_tour, int tour_size, float tour_length,
+__kernel void update_best_so_far_to_device(__global int *from_tour, int tour_size, float tour_length,
                                         __global int *solutions, __global float *solution_lens)
 {
     __global int *best_tour = solutions + MAX_TOUR_SZ * N_ANTS;
@@ -843,3 +808,6 @@ __kernel void update_best_so_far_to_mem(__global int *from_tour, int tour_size, 
     
     solution_lens[N_ANTS] = tour_length;
 }
+
+
+
