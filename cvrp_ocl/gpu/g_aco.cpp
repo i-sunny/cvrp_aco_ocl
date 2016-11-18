@@ -437,7 +437,7 @@ void g_ACO::find_best_solution(void)
  * update best-so-far solution if better solution found
  * this function should be called after find_best_solution()
  * 注意: kernel进入队列后, 按照FIFO顺序执行, 因此实际被执行时间很可能晚于
- * clEnqueueNDRangeKernel时间, 所以不能利用 elapsed_time(VIRTUAL) 计时.
+ * kernel入队列时间, 所以不能利用 elapsed_time(VIRTUAL) 计时.
  */
 void g_ACO::update_best_so_far(void)
 {

@@ -362,11 +362,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/kernel.cl"
-            timestampString = "501071832.56706"
+            timestampString = "501137865.303517"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "391"
-            endingLineNumber = "391"
+            startingLineNumber = "387"
+            endingLineNumber = "387"
             landmarkName = "construct_solution()"
             landmarkType = "7">
          </BreakpointContent>
@@ -394,11 +394,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/kernel.cl"
-            timestampString = "501071832.56706"
+            timestampString = "501137865.303517"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "501"
-            endingLineNumber = "501"
+            startingLineNumber = "497"
+            endingLineNumber = "497"
             landmarkName = "construct_solution()"
             landmarkType = "7">
          </BreakpointContent>
@@ -410,11 +410,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/kernel.cl"
-            timestampString = "501071832.56706"
+            timestampString = "501137865.303517"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "500"
-            endingLineNumber = "500"
+            startingLineNumber = "496"
+            endingLineNumber = "496"
             landmarkName = "construct_solution()"
             landmarkType = "7">
          </BreakpointContent>
@@ -426,11 +426,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/kernel.cl"
-            timestampString = "501071832.56706"
+            timestampString = "501137865.303517"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "234"
-            endingLineNumber = "234"
+            startingLineNumber = "230"
+            endingLineNumber = "230"
             landmarkName = "two_opt_single_route()"
             landmarkType = "7">
          </BreakpointContent>
@@ -442,11 +442,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/kernel.cl"
-            timestampString = "501071832.56706"
+            timestampString = "501137865.303517"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "309"
-            endingLineNumber = "309"
+            startingLineNumber = "305"
+            endingLineNumber = "305"
             landmarkName = "two_opt_single_route()"
             landmarkType = "7">
          </BreakpointContent>
@@ -458,11 +458,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/kernel.cl"
-            timestampString = "501135316.826888"
+            timestampString = "501137865.303517"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "595"
-            endingLineNumber = "595"
+            startingLineNumber = "591"
+            endingLineNumber = "591"
             landmarkName = "update_best_so_far()"
             landmarkType = "7">
          </BreakpointContent>
@@ -490,12 +490,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "501136619.088661"
+            timestampString = "501137865.303517"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "612"
-            endingLineNumber = "612"
-            landmarkName = "g_ACO::update_best_so_far_from_device(void)"
+            startingLineNumber = "582"
+            endingLineNumber = "582"
+            landmarkName = "g_ACO::create_memory_objects(void)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -506,12 +506,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "501136619.088661"
+            timestampString = "501137865.303517"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "446"
-            endingLineNumber = "446"
-            landmarkName = "g_ACO::update_best_so_far(void)"
+            startingLineNumber = "416"
+            endingLineNumber = "416"
+            landmarkName = "g_ACO::find_best_solution(void)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -522,11 +522,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "501136619.088661"
+            timestampString = "501137668.124621"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "157"
-            endingLineNumber = "157"
+            startingLineNumber = "156"
+            endingLineNumber = "156"
             landmarkName = "g_ACO::construct_solutions(void)"
             landmarkType = "5">
          </BreakpointContent>
