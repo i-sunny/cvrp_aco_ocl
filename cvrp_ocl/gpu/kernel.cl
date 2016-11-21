@@ -754,7 +754,7 @@ __kernel void get_elites(__global float *solution_lens, __global int *elite_ids)
 }
 
 /*
- * work_group_size = MAX_TOUR_SZ
+ * work_group_size = env.maxWorkGroupSize / 2
  * num_grp = number of elite ants + best-so-far ant = RAS_RANKS
  */
 __kernel void pheromone_deposit(__global int *elite_ids,
@@ -777,9 +777,10 @@ __kernel void pheromone_deposit(__global int *elite_ids,
     int weight = RAS_RANKS - grp_id;
     float d_tau = 1.0f * weight / tour_length;
 
-    if(lid < tour_size - 1) {
-        int j = tour_wrk[lid];
-        int h = tour_wrk[lid+1];
+    int lsz = get_local_size(0);
+    for(int i = lid; i < tour_size - 1; i+=lsz) {
+        int j = tour_wrk[i];
+        int h = tour_wrk[i+1];
         // !!多只蚂蚁同时对同一块内存写数据，需要原子操作
         atomic_add_global(&(pheromone[j * NUM_NODE + h]), d_tau);
     }

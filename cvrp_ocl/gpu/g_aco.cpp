@@ -280,7 +280,7 @@ void g_ACO::pheromone_deposit(void)
     
     /* then, pheromone_deposit */
     cl_int err_num;
-    const int grp_size = max_tour_sz;
+    const int grp_size = env.maxWorkGroupSize / 2;
     const int num_grp = ras_ranks;
     size_t global_work_size[1] = {static_cast<size_t>(grp_size * num_grp)};
     size_t local_work_size[1] = {static_cast<size_t>(grp_size)};

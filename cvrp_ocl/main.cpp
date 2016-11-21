@@ -63,8 +63,8 @@ int main(int argc, char *argv[])
     for (int did = 1; did <= 1; did++)
     {
         char *filename = parse_commandline(argc, argv);
-//        sprintf(filename, "../dataset/CMT/CMT%d.vrp", did);
-        sprintf(filename, "../dataset/Golden/Golden_2.vrp");
+        sprintf(filename, "../dataset/CMT/CMT%d.vrp", did);
+//        sprintf(filename, "../dataset/Golden/Golden_2.vrp");
         
         for (int ntry = 0 ; ntry < tries; ntry++)
         {
