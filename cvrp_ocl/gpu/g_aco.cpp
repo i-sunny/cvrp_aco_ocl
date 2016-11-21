@@ -205,7 +205,7 @@ void g_ACO::local_search(void)
 //        }
 //        ant->tour_length = compute_tour_length(&instance, ant->tour, ant->tour_size);
 //        assert(check_solution(&instance, ant->tour, ant->tour_size));
-//        print_solution(&instance, ant->tour, ant->tour_size);
+////        print_solution(&instance, ant->tour, ant->tour_size);
 //    }
 //    delete[] result;
     
@@ -245,7 +245,6 @@ void g_ACO::pheromone_init(float trail_0)
                                      0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
 }
-
 
 /*
  * number of threads: num_node * num_node

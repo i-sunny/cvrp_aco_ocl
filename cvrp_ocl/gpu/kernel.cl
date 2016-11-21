@@ -592,7 +592,7 @@ __kernel void update_best_so_far(__global bool *update_flag,
             bsf_records[pos].iter = iteration;
             bsf_records[pos].length = len;
             bsf_records[pos].time = time;
-            DEBUG(printf("Best: iter: %d len: %f time: %.4f\n", iteration, len, time);)
+            DEBUG(printf("Best: iter: %d len: %f time: %.2f\n", iteration, len, time);)
             *num_bsf = ++pos;
         }
     }
