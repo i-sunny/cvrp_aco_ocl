@@ -556,25 +556,25 @@ __kernel void local_search(const int nn_ls, __global int *nn_list,
  * update best so far solution after an iteration if better solution found
  * number of threads: MAX_TOUR_SZ (>= tour_size) 即可
  */
-__kernel void update_best_so_far(__global int *solutions, __global float *solution_lens,
+__kernel void update_best_so_far(__global bool *update_flag,
+                                 __global int *solutions, __global float *solution_lens,
                                  __global struct BestSolutionInfo *bsf_records, __global int *num_bsf,
                                  float time, int iteration)
 {
-    int gid = get_global_id(0);
-    
-    __global int *best_tour, *iter_best_tour;
-    
-    /*
-     * after call kernel best_solution_phase_1(),
-     * we have already got the iter-best solution
-     */
-    int idx = solutions[MAX_TOUR_SZ * (N_ANTS + 1)];
-    iter_best_tour = solutions + MAX_TOUR_SZ * idx;
-    int tour_size = iter_best_tour[MAX_TOUR_SZ - 1];
-    float len = solution_lens[idx];
-    
-    // better solution found
-    if(len - solution_lens[N_ANTS] < -EPSILON){
+    if(*update_flag)
+    {
+        int gid = get_global_id(0);
+        __global int *best_tour, *iter_best_tour;
+        
+        /*
+         * after call kernel best_solution_phase_1(),
+         * we have already got the iter-best solution
+         */
+        int idx = solutions[MAX_TOUR_SZ * (N_ANTS + 1)];
+        iter_best_tour = solutions + MAX_TOUR_SZ * idx;
+        int tour_size = iter_best_tour[MAX_TOUR_SZ - 1];
+        float len = solution_lens[idx];
+
         // update best-so-far solution
         if (gid < tour_size) {
             best_tour = solutions + MAX_TOUR_SZ * N_ANTS;
@@ -647,27 +647,33 @@ __kernel void best_solution_phase_0(int n_solutions, __global float* solution_le
  * Step 2: get best soltion from all work-groups' best solutions
  * Note: It assumes that 'length' is very small (and so doesn't incur into
  *       another reduction)
+ * number of threads: 1
  */
-__kernel void best_solution_phase_1(int num_grps, __global int *solutions,
-                              __global float* result_val, __global int* result_idx)
+__kernel void best_solution_phase_1(int num_grps,
+                                    __global int *solutions, __global float *solution_lens,
+                                    __global float *result_val, __global int *result_idx,
+                                    __global bool *update_flag)
 {
-    int gid = get_global_id(0);
+
+    float minval = result_val[0];
+    int minidx = result_idx[0];
     
-    if (gid == 0) {
-        float minval = result_val[0];
-        int minidx = result_idx[0];
-        
-        for (int i = 1; i < num_grps; i++) {
-            float x = result_val[i];
-            if (x < minval) {
-                minval = x;
-                minidx = result_idx[i];
-            }
+    for (int i = 1; i < num_grps; i++) {
+        float x = result_val[i];
+        if (x < minval) {
+            minval = x;
+            minidx = result_idx[i];
         }
-        result_idx[0] = minidx;
-        
-        // update iter-best solution id
-        solutions[MAX_TOUR_SZ * (N_ANTS + 1)] = minidx;
+    }
+    result_idx[0] = minidx;
+    
+    // update iter-best solution id
+    solutions[MAX_TOUR_SZ * (N_ANTS + 1)] = minidx;
+    // mark if we need to update best-so-far solution
+    if(minval - solution_lens[N_ANTS] < -EPSILON) {
+        *update_flag = TRUE;
+    } else {
+        *update_flag = FALSE;
     }
 }
 

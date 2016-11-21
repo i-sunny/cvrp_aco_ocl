@@ -53,6 +53,7 @@ g_ACO::~g_ACO()
     clReleaseMemObject(elite_ids_mem);
     clReleaseMemObject(best_result_val);
     clReleaseMemObject(best_result_idx);
+    clReleaseMemObject(update_flag_mem);
 }
 
 void g_ACO::init_aco()
@@ -204,6 +205,7 @@ void g_ACO::local_search(void)
 //        }
 //        ant->tour_length = compute_tour_length(&instance, ant->tour, ant->tour_size);
 //        assert(check_solution(&instance, ant->tour, ant->tour_size));
+//        print_solution(&instance, ant->tour, ant->tour_size);
 //    }
 //    delete[] result;
     
@@ -382,6 +384,9 @@ void g_ACO::update_pheromone_weighted(AntStruct *a, int weight)
  */
 void g_ACO::update_statistics(void)
 {
+    // Blocks until all previously queued commands in a command-queue have completed.
+    clFinish(env.commandQueue);
+    
     // find iter-best solution
     find_best_solution();
     
@@ -421,8 +426,10 @@ void g_ACO::find_best_solution(void)
     
     err_num = clSetKernelArg(best_phase_1, 0, sizeof(int), &num_grps);
     err_num |= clSetKernelArg(best_phase_1, 1, sizeof(cl_mem), &solutions_mem);
-    err_num |= clSetKernelArg(best_phase_1, 2, sizeof(cl_mem), &best_result_val);
-    err_num |= clSetKernelArg(best_phase_1, 3, sizeof(cl_mem), &best_result_idx);
+    err_num |= clSetKernelArg(best_phase_1, 2, sizeof(cl_mem), &solution_lens_mem);
+    err_num |= clSetKernelArg(best_phase_1, 3, sizeof(cl_mem), &best_result_val);
+    err_num |= clSetKernelArg(best_phase_1, 4, sizeof(cl_mem), &best_result_idx);
+    err_num |= clSetKernelArg(best_phase_1, 5, sizeof(cl_mem), &update_flag_mem);
     check_error(err_num, CL_SUCCESS);
     
     global_work_size[0] ={1};
@@ -437,7 +444,7 @@ void g_ACO::find_best_solution(void)
  * update best-so-far solution if better solution found
  * this function should be called after find_best_solution()
  * 注意: kernel进入队列后, 按照FIFO顺序执行, 因此实际被执行时间很可能晚于
- * kernel入队列时间, 所以不能利用 elapsed_time(VIRTUAL) 计时.
+ * kernel入队列时间, 所以需要首先调用clFinish() 保证之前命令执行完成，然后才计时
  */
 void g_ACO::update_best_so_far(void)
 {
@@ -445,12 +452,13 @@ void g_ACO::update_best_so_far(void)
     cl_int err_num;
     cl_kernel& update_best_so_far = env.get_kernel(kernel_t::update_best_so_far);
     
-    err_num = clSetKernelArg(update_best_so_far, 0, sizeof(cl_mem), &solutions_mem);
-    err_num |= clSetKernelArg(update_best_so_far, 1, sizeof(cl_mem), &solution_lens_mem);
-    err_num |= clSetKernelArg(update_best_so_far, 2, sizeof(cl_mem), &bsf_records_mem);
-    err_num |= clSetKernelArg(update_best_so_far, 3, sizeof(cl_mem), &num_bsf_mem);
-    err_num |= clSetKernelArg(update_best_so_far, 4, sizeof(float), &time);
-    err_num |= clSetKernelArg(update_best_so_far, 5, sizeof(int), &instance.iteration);
+    err_num = clSetKernelArg(update_best_so_far, 0, sizeof(cl_mem), &update_flag_mem);
+    err_num |= clSetKernelArg(update_best_so_far, 1, sizeof(cl_mem), &solutions_mem);
+    err_num |= clSetKernelArg(update_best_so_far, 2, sizeof(cl_mem), &solution_lens_mem);
+    err_num |= clSetKernelArg(update_best_so_far, 3, sizeof(cl_mem), &bsf_records_mem);
+    err_num |= clSetKernelArg(update_best_so_far, 4, sizeof(cl_mem), &num_bsf_mem);
+    err_num |= clSetKernelArg(update_best_so_far, 5, sizeof(float), &time);
+    err_num |= clSetKernelArg(update_best_so_far, 6, sizeof(int), &instance.iteration);
     check_error(err_num, CL_SUCCESS);
     
     size_t global_work_size[1] ={static_cast<size_t>(max_tour_sz)};   // 保证大于等于 iter-best solution size 即可
@@ -489,6 +497,10 @@ void g_ACO::create_memory_objects(void)
     float best_len = INFINITY;
     err_num |= clEnqueueWriteBuffer(env.commandQueue, solution_lens_mem, CL_TRUE,
                                     sizeof(float) * n_ants, sizeof(float) * 1, &best_len, 0, NULL, NULL);
+    check_error(err_num, CL_SUCCESS);
+    
+    // update_flag object
+    update_flag_mem = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(bool), NULL, &err_num);
     check_error(err_num, CL_SUCCESS);
     
     // demand memory object
