@@ -107,6 +107,7 @@ void g_ACO::exit_aco(void)
     for (int i = 0; i < num_bsf; i++) {
         printf("Best: iter: %d len: %f time: %.2f\n", records[i].iter, records[i].length, records[i].time);
     }
+    instance.best_so_far_time = records[num_bsf-1].time;
 }
 
 /*

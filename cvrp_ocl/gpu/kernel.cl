@@ -4,7 +4,7 @@
 #define FALSE false
 
 #define EPSILON     0.001f
-#define DEBUG(x)    
+#define DEBUG(x)    x
 /****** parameters ******/
 #define RHO         0.1f
 #define ALPHA       1.0f
@@ -754,7 +754,7 @@ __kernel void get_elites(__global float *solution_lens, __global int *elite_ids)
 }
 
 /*
- * work_group_size = env.maxWorkGroupSize / 2
+ * work_group_size = env.maxWorkGroupSize / 4
  * num_grp = number of elite ants + best-so-far ant = RAS_RANKS
  */
 __kernel void pheromone_deposit(__global int *elite_ids,
@@ -764,20 +764,22 @@ __kernel void pheromone_deposit(__global int *elite_ids,
     int lid = get_local_id(0);
     int grp_id = get_group_id(0);   // 0 to RAS_RANKS - 1
     int tid = elite_ids[grp_id];
+    int lsz = get_local_size(0);
     
     __global int *tour = solutions + tid * MAX_TOUR_SZ;
     int tour_size = tour[MAX_TOUR_SZ-1];
     float tour_length = solution_lens[tid];
     
     // [优化]局部内存优化
-    tour_wrk[lid] = tour[lid];
+    for(int i = lid; i < tour_size; i+=lsz) {
+        tour_wrk[i] = tour[i];
+    }
     barrier(CLK_LOCAL_MEM_FENCE);
     
     // update pheromone int this tour
     int weight = RAS_RANKS - grp_id;
     float d_tau = 1.0f * weight / tour_length;
 
-    int lsz = get_local_size(0);
     for(int i = lid; i < tour_size - 1; i+=lsz) {
         int j = tour_wrk[i];
         int h = tour_wrk[i+1];
