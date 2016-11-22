@@ -59,7 +59,7 @@ g_ACO::~g_ACO()
 void g_ACO::init_aco()
 {
     /* 1. init parameters */
-    instance.best_so_far_time = elapsed_time(VIRTUAL);
+    instance.best_so_far_time = elapsed_time(REAL);
     
     /* Initialize variables concerning statistics etc. */
     instance.iteration   = 0;
@@ -132,6 +132,7 @@ void g_ACO::run_aco_iteration()
 void g_ACO::construct_solutions(void)
 {
     cl_int err_num;
+    cl_event construct_sol_event;
     const int grp_size = env.maxWorkGroupSize / 4;
     const int num_grps = (ceil)(1.0 * n_ants / grp_size);
     
@@ -156,8 +157,10 @@ void g_ACO::construct_solutions(void)
 
     err_num = clEnqueueNDRangeKernel(env.commandQueue, construct_solution,
                                      1, NULL, global_work_size, local_work_size,
-                                     0, NULL, NULL);
+                                     0, NULL, &construct_sol_event);
     check_error(err_num, CL_SUCCESS);
+    
+//    clWaitForEvents(1, &construct_sol_event);
 }
 
 /*
@@ -166,6 +169,7 @@ void g_ACO::construct_solutions(void)
 void g_ACO::local_search(void)
 {
     cl_int err_num;
+    cl_event local_search_event;
     cl_kernel& local_search = env.get_kernel(kernel_t::local_search);
     
     err_num = clSetKernelArg(local_search, 0, sizeof(cl_int), &instance.nn_ls);
@@ -184,8 +188,10 @@ void g_ACO::local_search(void)
 
     err_num = clEnqueueNDRangeKernel(env.commandQueue, local_search,
                                      1, NULL, global_work_size, local_work_size,
-                                     0, NULL, NULL);
+                                     0, NULL, &local_search_event);
     check_error(err_num, CL_SUCCESS);
+    
+//    clWaitForEvents(1, &local_search_event);
     
     /* ------ debug check solutions ------- */
 //    int *result = new int[max_tour_sz * n_ants];
@@ -205,7 +211,7 @@ void g_ACO::local_search(void)
 //        }
 //        ant->tour_length = compute_tour_length(&instance, ant->tour, ant->tour_size);
 //        assert(check_solution(&instance, ant->tour, ant->tour_size));
-////        print_solution(&instance, ant->tour, ant->tour_size);
+//        print_solution(&instance, ant->tour, ant->tour_size);
 //    }
 //    delete[] result;
     
@@ -437,6 +443,29 @@ void g_ACO::find_best_solution(void)
                                      1, NULL, global_work_size, local_work_size,
                                      0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
+    
+    // debug
+//    int idx;
+//    err_num = clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE,
+//                                  sizeof(int) * max_tour_sz * (n_ants + 1),
+//                                  sizeof(int), &idx, 0, NULL, NULL);
+//    check_error(err_num, CL_SUCCESS);
+//    
+//    int *result = new int[max_tour_sz];
+//    err_num = clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE,
+//                                  sizeof(int) * max_tour_sz * idx,
+//                                  sizeof(int) * max_tour_sz, result, 0, NULL, NULL);
+//    check_error(err_num, CL_SUCCESS);
+//    
+//    AntStruct *ant = &instance.ants[0];
+//    ant->tour_size = result[max_tour_sz - 1];
+//    for (int i = 0; i < ant->tour_size; i++) {
+//        ant->tour[i] = result[i];
+//    }
+//    ant->tour_length = compute_tour_length(&instance, ant->tour, ant->tour_size);
+//    assert(check_solution(&instance, ant->tour, ant->tour_size));
+////    print_solution(&instance, ant->tour, ant->tour_size);
+//    delete[] result;
 }
 
 /*
@@ -447,7 +476,7 @@ void g_ACO::find_best_solution(void)
  */
 void g_ACO::update_best_so_far(void)
 {
-    float time = elapsed_time(VIRTUAL);
+    float time = elapsed_time(REAL);
     cl_int err_num;
     cl_kernel& update_best_so_far = env.get_kernel(kernel_t::update_best_so_far);
     
