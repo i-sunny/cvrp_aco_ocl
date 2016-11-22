@@ -194,7 +194,7 @@ void set_default_parameters (Problem *instance)
     instance->nn_ls          = instance->nn_ants;//MIN(instance->nn_ants, 25);
     
     /* maximum number of iterations */
-    instance->max_iteration  = 1000;
+    instance->max_iteration  = 200;
     /* optimal tour length if known, otherwise a bound */
 //    instance->optimum        = 1;
     /* counter of number iterations */

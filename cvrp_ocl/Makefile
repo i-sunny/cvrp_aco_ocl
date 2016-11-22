@@ -3,17 +3,19 @@ VERSION=1.0
 
 OPTIM_FLAGS=-O2
 WARN_FLAGS=-Wall -ansi -pedantic
-CPPFLAGS=$(WARN_FLAGS) $(OPTIM_FLAGS) -std=gnu++11 -lpthread -lOpenCL
+CPPFLAGS=$(WARN_FLAGS) $(OPTIM_FLAGS) -std=gnu++11 -lOpenCL
 CC=g++
+
 # INC=-I/usr/local/cuda-7.5/include
 VPATH = gpu
 SUBDIR = gpu
+
 # To change the default timer implementation, uncomment the line below
 # or call 'make TIMER=unix'
 TIMER=unix
 LDLIBS=-lm
 
-OBJS= $(SUBDIR)/g_type.o $(SUBDIR)/g_aco.o $(SUBDIR)/g_sa.o antColony.o io.o localSearch.o main.o $(TIMER)_timer.o move.o neighbourSearch.o parallelAco.o problem.o utilities.o vrpHelper.o OpenCLInfo.o
+OBJS= $(SUBDIR)/g_type.o $(SUBDIR)/g_aco.o $(SUBDIR)/g_sa.o io.o localSearch.o main.o $(TIMER)_timer.o move.o neighbourSearch.o problem.o utilities.o vrpHelper.o OpenCLInfo.o
 EXE=main
 
 
@@ -24,9 +26,6 @@ clean:
 
 cvrp_ocl: $(OBJS)
 	$(CC) $(CPPFLAGS) $(OBJS) -o $(EXE)
-	# $(CC) $(CPPFLAGS) $(OBJS) -framework OpenCL -o $(EXE)
-
-antColony.o: antColony.cpp antColony.h
 
 io.o: io.cpp io.h
 
@@ -39,8 +38,6 @@ $(TIMER)_timer.o: $(TIMER)_timer.cpp timer.h
 move.o: move.cpp move.h
 
 neighbourSearch.o: neighbourSearch.cpp neighbourSearch.h
-
-parallelAco.o: parallelAco.cpp parallelAco.h
 
 problem.o: problem.cpp problem.h
 

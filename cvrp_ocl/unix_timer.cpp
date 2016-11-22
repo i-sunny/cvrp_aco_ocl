@@ -1,15 +1,12 @@
 /*
- 
  AAAA    CCCC   OOOO   TTTTTT   SSSSS  PPPPP
  AA  AA  CC     OO  OO    TT    SS      PP  PP
  AAAAAA  CC     OO  OO    TT     SSSS   PPPPP
  AA  AA  CC     OO  OO    TT        SS  PP
  AA  AA   CCCC   OOOO     TT    SSSSS   PP
- 
  ######################################################
  ##########    ACO algorithms for the TSP    ##########
  ######################################################
- 
  Version: 1.0
  File:    unix_timer.c
  Author:  Thomas Stuetzle
@@ -20,6 +17,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <time.h>
 
 
 #include "timer.h"
@@ -92,4 +90,3 @@ char* get_format_time(void)
     strftime(format_time, 26, "%Y-%m-%d %H:%M:%S", tm_info);
     return format_time;
 }
-

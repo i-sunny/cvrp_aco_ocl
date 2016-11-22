@@ -101,11 +101,11 @@ void g_ACO::exit_aco(void)
                                   sizeof(int) * 1, &num_bsf, 0, NULL, NULL);
     // then, get the records
     BestSolutionInfo *records = new BestSolutionInfo[num_bsf];
-    err_num |= clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE, 0,
+    err_num |= clEnqueueReadBuffer(env.commandQueue, bsf_records_mem, CL_TRUE, 0,
                                    sizeof(BestSolutionInfo) * num_bsf, records, 0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
     for (int i = 0; i < num_bsf; i++) {
-        printf("Best: iter: %d len: %f time: %.4f\n", records[i].iter, records[i].length, records[i].time);
+        printf("Best: iter: %d len: %f time: %.2f\n", records[i].iter, records[i].length, records[i].time);
     }
 }
 
@@ -132,7 +132,6 @@ void g_ACO::run_aco_iteration()
 void g_ACO::construct_solutions(void)
 {
     cl_int err_num;
-    cl_event construct_sol_event;
     const int grp_size = env.maxWorkGroupSize / 4;
     const int num_grps = (ceil)(1.0 * n_ants / grp_size);
     
@@ -157,10 +156,8 @@ void g_ACO::construct_solutions(void)
 
     err_num = clEnqueueNDRangeKernel(env.commandQueue, construct_solution,
                                      1, NULL, global_work_size, local_work_size,
-                                     0, NULL, &construct_sol_event);
+                                     0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
-    
-//    clWaitForEvents(1, &construct_sol_event);
 }
 
 /*
@@ -169,7 +166,6 @@ void g_ACO::construct_solutions(void)
 void g_ACO::local_search(void)
 {
     cl_int err_num;
-    cl_event local_search_event;
     cl_kernel& local_search = env.get_kernel(kernel_t::local_search);
     
     err_num = clSetKernelArg(local_search, 0, sizeof(cl_int), &instance.nn_ls);
@@ -188,10 +184,8 @@ void g_ACO::local_search(void)
 
     err_num = clEnqueueNDRangeKernel(env.commandQueue, local_search,
                                      1, NULL, global_work_size, local_work_size,
-                                     0, NULL, &local_search_event);
+                                     0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
-    
-//    clWaitForEvents(1, &local_search_event);
     
     /* ------ debug check solutions ------- */
 //    int *result = new int[max_tour_sz * n_ants];
@@ -285,7 +279,7 @@ void g_ACO::pheromone_deposit(void)
     
     /* then, pheromone_deposit */
     cl_int err_num;
-    const int grp_size = env.maxWorkGroupSize / 2;
+    const int grp_size = env.maxWorkGroupSize / 4;
     const int num_grp = ras_ranks;
     size_t global_work_size[1] = {static_cast<size_t>(grp_size * num_grp)};
     size_t local_work_size[1] = {static_cast<size_t>(grp_size)};

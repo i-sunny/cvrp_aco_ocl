@@ -4,7 +4,7 @@
 #define FALSE false
 
 #define EPSILON     0.001f
-#define DEBUG(x)    x
+#define DEBUG(x)    
 /****** parameters ******/
 #define RHO         0.1f
 #define ALPHA       1.0f
