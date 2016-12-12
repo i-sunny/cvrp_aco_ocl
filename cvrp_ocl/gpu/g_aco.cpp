@@ -75,15 +75,15 @@ void g_ACO::init_aco()
     float trail_0 = 0.5;
     pheromone_init(trail_0);
     
-    // 第一次迭代用于设置一个合适的 pheromone init trail
-    construct_solutions();
-    if (instance.ls_flag) {
-        local_search();
-    }
-    update_statistics();
-    update_best_so_far_from_device();
-    trail_0 =  1.0f / ((rho) * instance.best_so_far_ant->tour_length);
-    pheromone_init(trail_0);
+//    // 第一次迭代用于设置一个合适的 pheromone init trail
+//    construct_solutions();
+//    if (instance.ls_flag) {
+//        local_search();
+//    }
+//    update_statistics();
+//    update_best_so_far_from_device();
+//    trail_0 =  1.0f / ((rho) * instance.best_so_far_ant->tour_length);
+//    pheromone_init(trail_0);
     
     instance.iteration++;
 }
@@ -129,13 +129,15 @@ void g_ACO::run_aco_iteration()
 
 /*
  * solution construction phase
+ * 采用data parallelism
+ * 参考文献: Enhancing data parallelism for Ant Colony Optimization on GPUs
  */
 void g_ACO::construct_solutions(void)
 {
     cl_int err_num;
     cl_event event;
-    const int grp_size = env.maxWorkGroupSize / 4;
-    const int num_grps = (ceil)(1.0 * n_ants / grp_size);
+    const int grp_size = env.maxWorkGroupSize / 8;
+    const int num_grps = n_ants;
     
     // global work size must be divisable by the local work size
     size_t global_work_size[1] = {static_cast<size_t>(grp_size * num_grps)};
@@ -154,6 +156,11 @@ void g_ACO::construct_solutions(void)
     err_num |= clSetKernelArg(construct_solution, 8, sizeof(cl_mem), &solution_lens_mem);
     err_num |= clSetKernelArg(construct_solution, 9, sizeof(float) * num_node, NULL);      // local memory for a colomn distance[*][0]
     err_num |= clSetKernelArg(construct_solution, 10, sizeof(int) * num_node, NULL);       // local memory for demands
+    err_num |= clSetKernelArg(construct_solution, 11, sizeof(float) * num_node, NULL);      // local memory for a colomn total_info[current][*]
+    err_num |= clSetKernelArg(construct_solution, 12, sizeof(bool) * num_node, NULL);       // local memory for visited
+    err_num |= clSetKernelArg(construct_solution, 13, sizeof(bool) * num_node, NULL);       // local memory for candidate
+    err_num |= clSetKernelArg(construct_solution, 14, sizeof(float) * num_node, NULL);       // local memory for prob_selection
+    err_num |= clSetKernelArg(construct_solution, 15, sizeof(int) * num_node, NULL);         // local memory for scratch_idx
     check_error(err_num, CL_SUCCESS);
 
     err_num = clEnqueueNDRangeKernel(env.commandQueue, construct_solution,
