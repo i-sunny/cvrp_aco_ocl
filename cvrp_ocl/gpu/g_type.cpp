@@ -126,7 +126,7 @@ cl_command_queue OpenclEnv::createCommandQueue(cl_context context, cl_device_id 
     }
     
     // choose the first available device.
-    commandQueue = clCreateCommandQueue(context, devices[0], 0, NULL);
+    commandQueue = clCreateCommandQueue(context, devices[0], CL_QUEUE_PROFILING_ENABLE, NULL);
     if (commandQueue == NULL) {
         cerr << "Failed to create commandQueue from device 0" << endl;
         return NULL;
@@ -206,3 +206,4 @@ cl_kernel& OpenclEnv:: get_kernel(kernel_t id)
 {
     return krnl_table[static_cast<int>(id)];
 }
+

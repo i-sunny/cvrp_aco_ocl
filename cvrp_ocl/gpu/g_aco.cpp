@@ -118,13 +118,13 @@ void g_ACO::run_aco_iteration()
     
     construct_solutions();
     
-    if (instance.ls_flag) {
-        local_search();
-    }
-    
-    update_statistics();
-
-    pheromone_update();
+//    if (instance.ls_flag) {
+//        local_search();
+//    }
+//    
+//    update_statistics();
+//
+//    pheromone_update();
 }
 
 /*
@@ -133,6 +133,7 @@ void g_ACO::run_aco_iteration()
 void g_ACO::construct_solutions(void)
 {
     cl_int err_num;
+    cl_event event;
     const int grp_size = env.maxWorkGroupSize / 4;
     const int num_grps = (ceil)(1.0 * n_ants / grp_size);
     
@@ -157,8 +158,22 @@ void g_ACO::construct_solutions(void)
 
     err_num = clEnqueueNDRangeKernel(env.commandQueue, construct_solution,
                                      1, NULL, global_work_size, local_work_size,
-                                     0, NULL, NULL);
+                                     0, NULL, &event);
     check_error(err_num, CL_SUCCESS);
+    
+    
+    ////////
+    cl_ulong ev_start_time = (cl_ulong) 0;
+    cl_ulong ev_end_time = (cl_ulong) 0;
+    size_t return_bytes;
+    
+    clFinish(env.commandQueue);
+    err_num = clWaitForEvents(1, &event);
+    err_num = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_QUEUED, sizeof(cl_ulong), &ev_start_time, &return_bytes);
+    err_num = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &ev_end_time, &return_bytes);
+    double run_time = (double)(ev_end_time - ev_start_time);
+    printf("\n construct solutions %f secs\n", run_time*1.0e-9);
+    ////////
 }
 
 /*
@@ -709,4 +724,6 @@ void check_error_file_line(int err_num, int expected, const char* file, const in
         exit(1);
     }
 }
+
+
 
