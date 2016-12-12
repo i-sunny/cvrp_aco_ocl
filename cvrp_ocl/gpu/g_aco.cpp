@@ -136,7 +136,7 @@ void g_ACO::construct_solutions(void)
 {
     cl_int err_num;
     cl_event event;
-    const int grp_size = env.maxWorkGroupSize / 8;
+    const int grp_size = env.maxWorkGroupSize / 4;
     const int num_grps = n_ants;
     
     // global work size must be divisable by the local work size
@@ -156,11 +156,12 @@ void g_ACO::construct_solutions(void)
     err_num |= clSetKernelArg(construct_solution, 8, sizeof(cl_mem), &solution_lens_mem);
     err_num |= clSetKernelArg(construct_solution, 9, sizeof(float) * num_node, NULL);      // local memory for a colomn distance[*][0]
     err_num |= clSetKernelArg(construct_solution, 10, sizeof(int) * num_node, NULL);       // local memory for demands
-    err_num |= clSetKernelArg(construct_solution, 11, sizeof(float) * num_node, NULL);      // local memory for a colomn total_info[current][*]
-    err_num |= clSetKernelArg(construct_solution, 12, sizeof(bool) * num_node, NULL);       // local memory for visited
-    err_num |= clSetKernelArg(construct_solution, 13, sizeof(bool) * num_node, NULL);       // local memory for candidate
-    err_num |= clSetKernelArg(construct_solution, 14, sizeof(float) * num_node, NULL);       // local memory for prob_selection
-    err_num |= clSetKernelArg(construct_solution, 15, sizeof(int) * num_node, NULL);         // local memory for scratch_idx
+    err_num |= clSetKernelArg(construct_solution, 11, sizeof(float) * num_node, NULL);      // local memory for a colomn distance[current][*]
+    err_num |= clSetKernelArg(construct_solution, 12, sizeof(float) * num_node, NULL);      // local memory for a colomn total_info[current][*]
+    err_num |= clSetKernelArg(construct_solution, 13, sizeof(bool) * num_node, NULL);       // local memory for visited
+    err_num |= clSetKernelArg(construct_solution, 14, sizeof(bool) * num_node, NULL);       // local memory for candidate
+    err_num |= clSetKernelArg(construct_solution, 15, sizeof(float) * num_node, NULL);       // local memory for prob_selection
+    err_num |= clSetKernelArg(construct_solution, 16, sizeof(int) * num_node, NULL);         // local memory for scratch_idx
     check_error(err_num, CL_SUCCESS);
 
     err_num = clEnqueueNDRangeKernel(env.commandQueue, construct_solution,

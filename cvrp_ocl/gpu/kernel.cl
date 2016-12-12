@@ -410,7 +410,7 @@ inline void independent_roulette(int *seed, __local float *total_info_wrk,
             }
         }
         
-        offset = offset / 2;
+        offset >>= 1;
         for(int i = lid; i < offset; i+=nloc) {
             other = prob_selection[i + offset];
             mine = prob_selection[i];
@@ -440,7 +440,7 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
                                  __global int *rnd_seeds, __global float *distance, __global int *demands,
                                  __global float *total_info, __global int *solutions, __global float *solution_lens,
                                  __local float *dist0_wrk, __local int *demands_wrk,
-                                 __local float *total_info_wrk,
+                                 __local float *dist_wrk, __local float *total_info_wrk,
                                  __local bool *visited, __local bool *candidate,
                                  __local float *prob_selection, __local int *scratch_idx)
 {
@@ -493,43 +493,45 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
     
     while (visited_cnt < NUM_NODE) {
 
-            for(i = lid; i < NUM_NODE; i+=nloc) {
-                total_info_wrk[i] = total_info[cur_node * NUM_NODE + i];
-                
-                candidate[i] = FALSE;
-                if (visited[i] == FALSE &&
-                    route_load + demands_wrk[i] <= capacity &&
-                    route_dist + (distance[cur_node * NUM_NODE + i] + serv_time) + dist0_wrk[i] <= max_dist) {
-                    candidate[i] = TRUE;
-                }
+        for(i = lid; i < NUM_NODE; i+=nloc) {
+            total_info_wrk[i] = total_info[cur_node * NUM_NODE + i];
+            dist_wrk[i] = distance[cur_node * NUM_NODE + i];
+        }
+        
+        for(i = lid; i < NUM_NODE; i+=nloc) {
+            candidate[i] = FALSE;
+            if (visited[i] == FALSE &&
+                route_load + demands_wrk[i] <= capacity &&
+                route_dist + (dist_wrk[i] + serv_time) + dist0_wrk[i] <= max_dist) {
+                candidate[i] = TRUE;
             }
-            barrier(CLK_LOCAL_MEM_FENCE);
-        
-            independent_roulette(&rnd_seed, total_info_wrk, candidate, prob_selection, scratch_idx);
-        
-            // Queen ant choose and move to next node
-            if(lid == 0) {
-                step++;
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    
+        independent_roulette(&rnd_seed, total_info_wrk, candidate, prob_selection, scratch_idx);
+    
+        // Queen ant choose and move to next node
+        if(lid == 0) {
+            step++;
 
-                if(prob_selection[0] == 0) {
-                    // 1) 如果没有点满足配送条件, 则蚂蚁回到depot，重新开始新的路径
-                    nxt_node = 0;
-                    route_load = 0;
-                    route_dist = 0;
-                    printf("ffffffffffffffff\n");
-                } else {
-                    // 2）否则，选择下一个配送点
-                    nxt_node = scratch_idx[0];
-                    route_load += demands_wrk[nxt_node];
-                    route_dist += distance[cur_node * NUM_NODE + nxt_node] + serv_time;
-                    visited_cnt++;
-                }
-                visited[nxt_node] = TRUE;
-                tour[step] = nxt_node;
-                cur_node = nxt_node;
-                tour_dist += distance[cur_node * NUM_NODE + nxt_node];
+            if(prob_selection[0] == 0) {
+                // 1) 如果没有点满足配送条件, 则蚂蚁回到depot，重新开始新的路径
+                nxt_node = 0;
+                route_load = 0;
+                route_dist = 0;
+            } else {
+                // 2）否则，选择下一个配送点
+                nxt_node = scratch_idx[0];
+                route_load += demands_wrk[nxt_node];
+                route_dist += dist_wrk[nxt_node] + serv_time;
+                visited_cnt++;
             }
-            barrier(CLK_LOCAL_MEM_FENCE);
+            visited[nxt_node] = TRUE;
+            tour[step] = nxt_node;
+            tour_dist += dist_wrk[nxt_node];
+            cur_node = nxt_node;
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
     }
     
     // queen ant go back to depot
@@ -540,7 +542,6 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
         tour[MAX_TOUR_SZ-1] = step + 1;
         
         solution_lens[grp_id] = tour_dist;
-        printf("len:%f \n", solution_lens[grp_id]);
         
         // !!更新种子至 global memory
         rnd_seeds[grp_id] = rnd_seed;
