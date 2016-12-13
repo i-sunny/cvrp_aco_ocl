@@ -353,7 +353,7 @@ inline void independent_roulette(int *seed, __local float *total_info_wrk,
             }
         }
         
-        offset >>= 1;
+        offset /= 2;
         for(int i = lid; i < offset; i+=nloc) {
             other = prob_selection[i + offset];
             mine = prob_selection[i];
@@ -389,6 +389,7 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
 {
     //    DEBUG(printf("begin constructing solution\n");)
     int     grp_id = get_group_id(0);
+    int     gid = get_global_id(0);
     int     lid = get_local_id(0);
     int     nloc = get_local_size(0);
     
@@ -415,7 +416,7 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
     
     int     step;
     float   tour_dist;
-    int     rnd_seed = rnd_seeds[grp_id];
+    int     rnd_seed = rnd_seeds[gid];
     int     nxt_node;
     int     i;
 
@@ -485,10 +486,10 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
         tour[MAX_TOUR_SZ-1] = step + 1;
         
         solution_lens[grp_id] = tour_dist;
-        
-        // !!更新种子至 global memory
-        rnd_seeds[grp_id] = rnd_seed;
     }
+    
+    // !!更新种子至 global memory
+    rnd_seeds[gid] = rnd_seed;
 }
 
 

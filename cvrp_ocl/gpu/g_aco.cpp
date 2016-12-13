@@ -293,7 +293,7 @@ void g_ACO::pheromone_deposit(void)
     /* then, pheromone_deposit */
     cl_int err_num;
     cl_event event;
-    const int grp_size = env.maxWorkGroupSize / 4;
+    const int grp_size = env.maxWorkGroupSize;
     const int num_grp = ras_ranks;
     size_t global_work_size[1] = {static_cast<size_t>(grp_size * num_grp)};
     size_t local_work_size[1] = {static_cast<size_t>(grp_size)};
@@ -708,13 +708,15 @@ void g_ACO::create_memory_objects(void)
                                  sizeof(int) * num_node * instance.nn_ls, tmp_nn_list, &err_num);
     check_error(err_num, CL_SUCCESS);
     
+    // FIXME: hard code
     // seed memory
-    int *tmp_seed = new int[n_ants];
-    for (i = 0; i < n_ants; i++) {
-        tmp_seed[i] = (int)time(NULL) + i * (i + ran01(&instance.rnd_seed)) * n_ants;
+    int seed_size = n_ants * (env.maxWorkGroupSize/4);
+    int *tmp_seed = new int[seed_size];
+    for (i = 0; i < seed_size; i++) {
+        tmp_seed[i] = (int)time(NULL) + (i%n_ants) * ((i%n_ants) + ran01(&instance.rnd_seed)) * n_ants;
     }
     seed_mem = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                              sizeof(int) * n_ants, tmp_seed, &err_num);
+                              sizeof(int) * seed_size, tmp_seed, &err_num);
     check_error(err_num, CL_SUCCESS);
     
     /*
