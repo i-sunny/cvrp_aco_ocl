@@ -65,6 +65,7 @@ private:
     void find_best_solution(void);
     void update_best_so_far(void);
     void get_elites(void);
+    double event_runtime(cl_event& event);
 };
 
 #endif /* g_aco_h */

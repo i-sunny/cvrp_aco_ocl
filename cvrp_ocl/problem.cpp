@@ -26,7 +26,6 @@
 /**** 用于parallel aco参数 ***/
 int g_master_problem_iteration_num;   /* 每次外循环，主问题蚁群的迭代的次数 */
 int g_sub_problem_iteration_num;      /* 每次外循环，子问题蚁群的迭代次数 */
-bool sa_flag = true;                        /* 是否使用sa */
 
 float rho;           /* parameter for evaporation */
 float alpha;         /* importance of trail */

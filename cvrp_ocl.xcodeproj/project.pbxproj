@@ -18,7 +18,6 @@
 		A3077BDC1DD759EA0094284E /* utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BCE1DD759EA0094284E /* utilities.cpp */; };
 		A3077BDD1DD759EA0094284E /* vrpHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BD01DD759EA0094284E /* vrpHelper.cpp */; };
 		A3077BE51DD759FA0094284E /* g_aco.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BDE1DD759FA0094284E /* g_aco.cpp */; };
-		A3077BE61DD759FA0094284E /* g_sa.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BE01DD759FA0094284E /* g_sa.cpp */; };
 		A3077BE71DD759FA0094284E /* g_type.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3077BE21DD759FA0094284E /* g_type.cpp */; };
 		A3077BE81DD759FA0094284E /* kernel.cl in Sources */ = {isa = PBXBuildFile; fileRef = A3077BE41DD759FA0094284E /* kernel.cl */; };
 		A37DAC9F1DB51EBC0009F63A /* OpenCL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A37DAC9E1DB51EBC0009F63A /* OpenCL.framework */; };
@@ -58,8 +57,6 @@
 		A3077BD11DD759EA0094284E /* vrpHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vrpHelper.h; sourceTree = "<group>"; };
 		A3077BDE1DD759FA0094284E /* g_aco.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = g_aco.cpp; path = gpu/g_aco.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		A3077BDF1DD759FA0094284E /* g_aco.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = g_aco.h; path = gpu/g_aco.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		A3077BE01DD759FA0094284E /* g_sa.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = g_sa.cpp; path = gpu/g_sa.cpp; sourceTree = "<group>"; };
-		A3077BE11DD759FA0094284E /* g_sa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = g_sa.h; path = gpu/g_sa.h; sourceTree = "<group>"; };
 		A3077BE21DD759FA0094284E /* g_type.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = g_type.cpp; path = gpu/g_type.cpp; sourceTree = "<group>"; };
 		A3077BE31DD759FA0094284E /* g_type.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = g_type.h; path = gpu/g_type.h; sourceTree = "<group>"; };
 		A3077BE41DD759FA0094284E /* kernel.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; name = kernel.cl; path = gpu/kernel.cl; sourceTree = "<group>"; };
@@ -88,8 +85,6 @@
 				A3077BE41DD759FA0094284E /* kernel.cl */,
 				A3077BDE1DD759FA0094284E /* g_aco.cpp */,
 				A3077BDF1DD759FA0094284E /* g_aco.h */,
-				A3077BE01DD759FA0094284E /* g_sa.cpp */,
-				A3077BE11DD759FA0094284E /* g_sa.h */,
 				A3077BE21DD759FA0094284E /* g_type.cpp */,
 				A3077BE31DD759FA0094284E /* g_type.h */,
 			);
@@ -216,7 +211,6 @@
 				A3077BD51DD759EA0094284E /* main.cpp in Sources */,
 				A3077BD41DD759EA0094284E /* localSearch.cpp in Sources */,
 				A3077BDC1DD759EA0094284E /* utilities.cpp in Sources */,
-				A3077BE61DD759FA0094284E /* g_sa.cpp in Sources */,
 				A3077BDD1DD759EA0094284E /* vrpHelper.cpp in Sources */,
 				A3077BDB1DD759EA0094284E /* unix_timer.cpp in Sources */,
 			);

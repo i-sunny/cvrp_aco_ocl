@@ -442,27 +442,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "503252932.058222"
+            timestampString = "503299036.306392"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "640"
-            endingLineNumber = "640"
-            landmarkName = "g_ACO::create_memory_objects(void)"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "503252932.058222"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "444"
-            endingLineNumber = "444"
+            startingLineNumber = "441"
+            endingLineNumber = "441"
             landmarkName = "g_ACO::find_best_solution(void)"
             landmarkType = "5">
          </BreakpointContent>
@@ -490,11 +474,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "503252932.058222"
+            timestampString = "503299036.306392"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "671"
-            endingLineNumber = "671"
+            startingLineNumber = "674"
+            endingLineNumber = "674"
             landmarkName = "g_ACO::update_best_so_far_from_device(void)"
             landmarkType = "5">
          </BreakpointContent>
@@ -506,11 +490,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "503252932.058222"
+            timestampString = "503299036.306392"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "667"
-            endingLineNumber = "667"
+            startingLineNumber = "670"
+            endingLineNumber = "670"
             landmarkName = "g_ACO::update_best_so_far_from_device(void)"
             landmarkType = "5">
          </BreakpointContent>
@@ -522,11 +506,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "503252932.058222"
+            timestampString = "503299036.306392"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "308"
-            endingLineNumber = "308"
+            startingLineNumber = "298"
+            endingLineNumber = "298"
             landmarkName = "g_ACO::pheromone_deposit(void)"
             landmarkType = "5">
          </BreakpointContent>
@@ -554,7 +538,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "503252932.058222"
+            timestampString = "503299036.306392"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "498"
@@ -570,11 +554,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "503252740.356969"
+            timestampString = "503299036.306392"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "183"
-            endingLineNumber = "183"
+            startingLineNumber = "173"
+            endingLineNumber = "173"
             landmarkName = "g_ACO::construct_solutions(void)"
             landmarkType = "5">
          </BreakpointContent>
@@ -598,17 +582,33 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "cvrp_ocl/gpu/g_aco.cpp"
-            timestampString = "503249192.492084"
+            timestampString = "503299036.306392"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "94"
-            endingLineNumber = "94"
+            startingLineNumber = "95"
+            endingLineNumber = "95"
             landmarkName = "g_ACO::exit_aco(void)"
             landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "cvrp_ocl/io.cpp"
+            timestampString = "503299036.306392"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "240"
+            endingLineNumber = "240"
+            landmarkName = "exit_report(Problem *instance, int ntry)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

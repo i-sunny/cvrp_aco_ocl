@@ -610,7 +610,7 @@ __kernel void update_best_so_far(__global bool *update_flag,
         __global int *best_tour, *iter_best_tour;
         
         /*
-         * after call kernel best_solution_phase_1(),
+         * call after kernel best_solution_phase_1(),
          * we have already got the iter-best solution
          */
         int idx = solutions[MAX_TOUR_SZ * (N_ANTS + 1)];
@@ -807,14 +807,14 @@ __kernel void pheromone_deposit(__global int *elite_ids,
     int lid = get_local_id(0);
     int grp_id = get_group_id(0);   // 0 to RAS_RANKS - 1
     int tid = elite_ids[grp_id];
-    int lsz = get_local_size(0);
+    int nloc = get_local_size(0);
     
     __global int *tour = solutions + tid * MAX_TOUR_SZ;
     int tour_size = tour[MAX_TOUR_SZ-1];
     float tour_length = solution_lens[tid];
     
     // [优化]局部内存优化
-    for(int i = lid; i < tour_size; i+=lsz) {
+    for(int i = lid; i < tour_size; i+=nloc) {
         tour_wrk[i] = tour[i];
     }
     barrier(CLK_LOCAL_MEM_FENCE);
@@ -823,7 +823,7 @@ __kernel void pheromone_deposit(__global int *elite_ids,
     int weight = RAS_RANKS - grp_id;
     float d_tau = 1.0f * weight / tour_length;
 
-    for(int i = lid; i < tour_size - 1; i+=lsz) {
+    for(int i = lid; i < tour_size - 1; i+=nloc) {
         int j = tour_wrk[i];
         int h = tour_wrk[i+1];
         // !!多只蚂蚁同时对同一块内存写数据，需要原子操作

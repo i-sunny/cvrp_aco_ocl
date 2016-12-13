@@ -18,13 +18,14 @@
 #include <limits.h>
 
 #include "g_aco.h"
-#include "g_sa.h"
 #include "../utilities.h"
 #include "../vrpHelper.h"
 #include "../io.h"
 #include "../timer.h"
 
 using namespace std;
+
+#define PROFILE(x)   x
 
 #define check_error(a, b) check_error_file_line(a, b, __FILE__ , __LINE__)
 
@@ -75,15 +76,15 @@ void g_ACO::init_aco()
     float trail_0 = 0.5;
     pheromone_init(trail_0);
     
-//    // 第一次迭代用于设置一个合适的 pheromone init trail
-//    construct_solutions();
+    // 第一次迭代用于设置一个合适的 pheromone init trail
+    construct_solutions();
 //    if (instance.ls_flag) {
 //        local_search();
 //    }
-//    update_statistics();
-//    update_best_so_far_from_device();
-//    trail_0 =  1.0f / ((rho) * instance.best_so_far_ant->tour_length);
-//    pheromone_init(trail_0);
+    update_statistics();
+    update_best_so_far_from_device();
+    trail_0 =  1.0f / ((rho) * instance.best_so_far_ant->tour_length);
+    pheromone_init(trail_0);
     
     instance.iteration++;
 }
@@ -105,7 +106,7 @@ void g_ACO::exit_aco(void)
                                    sizeof(BestSolutionInfo) * num_bsf, records, 0, NULL, NULL);
     check_error(err_num, CL_SUCCESS);
     for (int i = 0; i < num_bsf; i++) {
-        printf("Best: iter: %d len: %f time: %.2f\n", records[i].iter, records[i].length, records[i].time);
+        write_best_report(records[i]);
     }
     instance.best_so_far_time = records[num_bsf-1].time;
 }
@@ -121,10 +122,10 @@ void g_ACO::run_aco_iteration()
 //    if (instance.ls_flag) {
 //        local_search();
 //    }
-//    
-//    update_statistics();
-//
-//    pheromone_update();
+    
+    update_statistics();
+
+    pheromone_update();
 }
 
 /*
@@ -169,19 +170,7 @@ void g_ACO::construct_solutions(void)
                                      0, NULL, &event);
     check_error(err_num, CL_SUCCESS);
     
-    
-    ////////
-    cl_ulong ev_start_time = (cl_ulong) 0;
-    cl_ulong ev_end_time = (cl_ulong) 0;
-    size_t return_bytes;
-    
-    clFinish(env.commandQueue);
-    err_num = clWaitForEvents(1, &event);
-    err_num = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_QUEUED, sizeof(cl_ulong), &ev_start_time, &return_bytes);
-    err_num = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &ev_end_time, &return_bytes);
-    double run_time = (double)(ev_end_time - ev_start_time);
-    printf("\n construct solutions %f secs\n", run_time*1.0e-9);
-    ////////
+    PROFILE(printf("\n[construct solutions] %f ms\n", event_runtime(event));)
 }
 
 /*
@@ -276,9 +265,8 @@ void g_ACO::pheromone_init(float trail_0)
 void g_ACO::pheromone_evaporation(void)
 {
     cl_int err_num;
+    cl_event event;
     size_t global_work_size[1] = {static_cast<size_t>(num_node * num_node)};
-    size_t local_work_size[1] = {1};
-    
     
     cl_kernel& pheromone_evaporation = env.get_kernel(kernel_t::pheromone_evaporation);
     // 1. set kernel arguments
@@ -287,9 +275,11 @@ void g_ACO::pheromone_evaporation(void)
     
     // 2. queue the kernel up for executeion
     err_num = clEnqueueNDRangeKernel(env.commandQueue, pheromone_evaporation,
-                                     1, NULL, global_work_size, local_work_size,
-                                     0, NULL, NULL);
+                                     1, NULL, global_work_size, NULL,
+                                     0, NULL, &event);
     check_error(err_num, CL_SUCCESS);
+    
+    PROFILE(printf("[pheromone evaporation] %f ms\n", event_runtime(event));)
 }
 
 /*
@@ -300,9 +290,9 @@ void g_ACO::pheromone_deposit(void)
     /* first, get elites */
     get_elites();
     
-    
     /* then, pheromone_deposit */
     cl_int err_num;
+    cl_event event;
     const int grp_size = env.maxWorkGroupSize / 4;
     const int num_grp = ras_ranks;
     size_t global_work_size[1] = {static_cast<size_t>(grp_size * num_grp)};
@@ -319,14 +309,17 @@ void g_ACO::pheromone_deposit(void)
     
     err_num = clEnqueueNDRangeKernel(env.commandQueue, pheromone_deposit,
                                      1, NULL, global_work_size, local_work_size,
-                                     0, NULL, NULL);
+                                     0, NULL, &event);
     check_error(err_num, CL_SUCCESS);
+    
+    PROFILE(printf("[pheromone deposit] %f ms\n", event_runtime(event));)
 }
 
 
 void g_ACO::get_elites(void)
 {
     cl_int err_num;
+    cl_event event;
     
     size_t global_work_size[1] = {1};
     size_t local_work_size[1] = {1};
@@ -340,8 +333,10 @@ void g_ACO::get_elites(void)
     
     err_num = clEnqueueNDRangeKernel(env.commandQueue, get_elites,
                                      1, NULL, global_work_size, local_work_size,
-                                     0, NULL, NULL);
+                                     0, NULL, &event);
     check_error(err_num, CL_SUCCESS);
+    
+    PROFILE(printf("[get elites] %f ms\n", event_runtime(event));)
 }
 
 
@@ -354,10 +349,9 @@ void g_ACO::get_elites(void)
 void g_ACO::compute_total_info(void)
 {
     cl_int err_num;
+    cl_event event;
     size_t global_work_size[1] = {static_cast<size_t>(num_node * num_node)};
-    size_t local_work_size[1] = {1};
-    
-    
+
     cl_kernel& compute_total_info = env.get_kernel(kernel_t::compute_total_info);
     
     err_num = clSetKernelArg(compute_total_info, 0, sizeof(cl_mem), &pheromone_mem);
@@ -366,9 +360,11 @@ void g_ACO::compute_total_info(void)
     check_error(err_num, CL_SUCCESS);
     
     err_num = clEnqueueNDRangeKernel(env.commandQueue, compute_total_info,
-                                     1, NULL, global_work_size, local_work_size,
-                                     0, NULL, NULL);
+                                     1, NULL, global_work_size, NULL,
+                                     0, NULL, &event);
     check_error(err_num, CL_SUCCESS);
+    
+    PROFILE(printf("[compute total info] %f ms\n", event_runtime(event));)
 }
 
 /*
@@ -420,10 +416,11 @@ void g_ACO::update_statistics(void)
 void g_ACO::find_best_solution(void)
 {
     cl_int err_num;
+    cl_event event1, event2;
     
     // phase 1 -- find best solution in each group
     const int grp_size = env.maxWorkGroupSize / 4;
-    const int num_grps = (ceil)(1.0 * n_ants / grp_size);
+    const int num_grps = ceil(1.0 * n_ants / grp_size);
     
     size_t global_work_size[1] = {static_cast<size_t>(grp_size * num_grps)};
     size_t local_work_size[1] = {static_cast<size_t>(grp_size)};
@@ -440,7 +437,7 @@ void g_ACO::find_best_solution(void)
     
     err_num = clEnqueueNDRangeKernel(env.commandQueue, best_phase_0,
                                      1, NULL, global_work_size, local_work_size,
-                                     0, NULL, NULL);
+                                     0, NULL, &event1);
     check_error(err_num, CL_SUCCESS);
     
     
@@ -459,8 +456,11 @@ void g_ACO::find_best_solution(void)
     local_work_size[0] = {1};
     err_num = clEnqueueNDRangeKernel(env.commandQueue, best_phase_1,
                                      1, NULL, global_work_size, local_work_size,
-                                     0, NULL, NULL);
+                                     0, NULL, &event2);
     check_error(err_num, CL_SUCCESS);
+    
+    PROFILE(printf("[find best solution] p1: %f ms, p2: %f ms\n",
+                   event_runtime(event1), event_runtime(event2));)
     
     // debug
 //    int idx;
@@ -496,6 +496,7 @@ void g_ACO::update_best_so_far(void)
 {
     float time = elapsed_time(REAL);
     cl_int err_num;
+    cl_event event;
     cl_kernel& update_best_so_far = env.get_kernel(kernel_t::update_best_so_far);
     
     err_num = clSetKernelArg(update_best_so_far, 0, sizeof(cl_mem), &update_flag_mem);
@@ -508,138 +509,14 @@ void g_ACO::update_best_so_far(void)
     check_error(err_num, CL_SUCCESS);
     
     size_t global_work_size[1] ={static_cast<size_t>(max_tour_sz)};   // 保证大于等于 iter-best solution size 即可
-    size_t local_work_size[1] = {1};
+    // 不指定局部维度,OpenCL实现可以选择局部维度
     err_num = clEnqueueNDRangeKernel(env.commandQueue, update_best_so_far,
-                                     1, NULL, global_work_size, local_work_size,
-                                     0, NULL, NULL);
+                                     1, NULL, global_work_size, NULL,
+                                     0, NULL, &event);
     check_error(err_num, CL_SUCCESS);
+    
+    PROFILE(printf("[update best so far] %f ms\n", event_runtime(event));)
 }
-
-/*
- * create memory objects
- */
-void g_ACO::create_memory_objects(void)
-{
-    int i, j, k;
-    cl_context context = env.context;
-    cl_int err_num;
-    
-    /*
-     * solutions memory object: 
-     * all ants solution（id: [0, n_ants-1] + best-so-far solution (id: n_ants) + iter-best solution (id: n_ants+1)
-     * 注意：最后的 iter-best solution 只存本次迭代最优解的所在下标id: [0, n_ants-1], 因此只需要sizeof(int) * 1 的内存
-     * 其余每个解分配内存: sizeof(int) * max_tour_sz
-     */
-    solutions_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                   sizeof(int) * (max_tour_sz * (n_ants + 1) + 1), NULL, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    /*
-     * solution lens memory object: lens of all ants solutions + best-so-far solution
-     * 注意： 需要初始化 best-so-far solution length
-     */
-    solution_lens_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                       sizeof(float) * (n_ants + 1), NULL, &err_num);
-    float best_len = INFINITY;
-    err_num |= clEnqueueWriteBuffer(env.commandQueue, solution_lens_mem, CL_TRUE,
-                                    sizeof(float) * n_ants, sizeof(float) * 1, &best_len, 0, NULL, NULL);
-    check_error(err_num, CL_SUCCESS);
-    
-    // update_flag object
-    update_flag_mem = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(bool), NULL, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    // demand memory object
-    int *tmp_demands = new int[num_node];
-    for (i = 0; i < num_node; i++) {
-        tmp_demands[i] = instance.nodeptr[i].demand;
-    }
-    demands_mem = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                 sizeof(int) * num_node, tmp_demands, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    // distance 2d-martix trans to 1d-array memory object
-    k = 0;
-    float *tmp_distance = new float[num_node * num_node];
-    for (i = 0; i < num_node; i++) {
-        for (j = 0; j < num_node; j++) {
-            tmp_distance[k++] = instance.distance[i][j];
-        }
-    }
-    distance_mem = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                  sizeof(float) * num_node * num_node, tmp_distance, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    // pheromone memory object
-    pheromone_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                   sizeof(float) * num_node * num_node, NULL, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    // total_info memory object
-    total_info_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                    sizeof(float) * num_node * num_node, NULL, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    // nn_list memory object
-    k = 0;
-    int *tmp_nn_list = new int[num_node * instance.nn_ls];
-    for (i = 0; i < num_node; i++) {
-        for (j = 0; j < instance.nn_ls; j++) {
-            tmp_nn_list[k++] = instance.nn_list[i][j];
-        }
-    }
-    nn_list_mem = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                 sizeof(int) * num_node * instance.nn_ls, tmp_nn_list, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    // seed memory
-    int *tmp_seed = new int[n_ants];
-    for (i = 0; i < n_ants; i++) {
-        tmp_seed[i] = (int)time(NULL) + i * (i + ran01(&instance.rnd_seed)) * n_ants;
-    }
-    seed_mem = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                                 sizeof(int) * n_ants, tmp_seed, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    /* 
-     * best-so-far solutions information memory, at most 4096 records
-     */
-    bsf_records_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
-                                        sizeof(BestSolutionInfo) * 4096, NULL, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    int tmp_num = 0;
-    num_bsf_mem = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                                  sizeof(int) * 1, &tmp_num, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    /* 
-     * store all `ras_rank` elite ants' ids
-     */
-    elite_ids_mem = clCreateBuffer(env.context, CL_MEM_READ_WRITE,
-                                   sizeof(int) * ras_ranks, NULL, &err_num);
-    check_error(err_num, CL_SUCCESS);
-
-    /*
-     * FIXME: hard code `num_grps`
-     * especially for find_best_solution()
-     */
-    const int grp_size = env.maxWorkGroupSize / 4;
-    const int num_grps = (ceil)(1.0 * n_ants / grp_size);
-    best_result_val = clCreateBuffer(env.context, CL_MEM_READ_WRITE,
-                                     sizeof(float) * num_grps, NULL, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    best_result_idx = clCreateBuffer(env.context, CL_MEM_READ_WRITE,
-                                     sizeof(int) * num_grps, NULL, &err_num);
-    check_error(err_num, CL_SUCCESS);
-    
-    
-    delete[] tmp_demands;
-    delete[] tmp_distance;
-    delete[] tmp_seed;
-    delete[] tmp_nn_list;
-}
-
 
 /*
  * update host best-so-far solution from device memory
@@ -733,5 +610,150 @@ void check_error_file_line(int err_num, int expected, const char* file, const in
     }
 }
 
+/*
+ * 统计事件执行时间，单位:毫秒
+ */
+double g_ACO::event_runtime(cl_event& event) {
+    cl_int err_num;
+    cl_ulong ev_start_time = (cl_ulong) 0;
+    cl_ulong ev_end_time = (cl_ulong) 0;
+    size_t return_bytes;
+    
+    clFinish(env.commandQueue);
+    err_num = clWaitForEvents(1, &event);
+    
+    err_num |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_QUEUED, sizeof(cl_ulong), &ev_start_time, &return_bytes);
+    err_num |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &ev_end_time, &return_bytes);
+    check_error(err_num, CL_SUCCESS);
+    
+    double run_time = (double)(ev_end_time - ev_start_time);
+    return run_time*1.0e-6;
+}
+
+
+/*
+ * create memory objects
+ */
+void g_ACO::create_memory_objects(void)
+{
+    int i, j, k;
+    cl_context context = env.context;
+    cl_int err_num;
+    
+    /*
+     * solutions memory object:
+     * all ants solution（id: [0, n_ants-1] + best-so-far solution (id: n_ants) + iter-best solution (id: n_ants+1)
+     * 注意：最后的 iter-best solution 只存本次迭代最优解的所在下标id: [0, n_ants-1], 因此只需要sizeof(int) * 1 的内存
+     * 其余每个解分配内存: sizeof(int) * max_tour_sz
+     */
+    solutions_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                   sizeof(int) * (max_tour_sz * (n_ants + 1) + 1), NULL, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    /*
+     * solution lens memory object: lens of all ants solutions + best-so-far solution
+     * 注意： 需要初始化 best-so-far solution length
+     */
+    solution_lens_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                       sizeof(float) * (n_ants + 1), NULL, &err_num);
+    float best_len = INFINITY;
+    err_num |= clEnqueueWriteBuffer(env.commandQueue, solution_lens_mem, CL_TRUE,
+                                    sizeof(float) * n_ants, sizeof(float) * 1, &best_len, 0, NULL, NULL);
+    check_error(err_num, CL_SUCCESS);
+    
+    // update_flag object
+    update_flag_mem = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(bool), NULL, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    // demand memory object
+    int *tmp_demands = new int[num_node];
+    for (i = 0; i < num_node; i++) {
+        tmp_demands[i] = instance.nodeptr[i].demand;
+    }
+    demands_mem = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 sizeof(int) * num_node, tmp_demands, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    // distance 2d-martix trans to 1d-array memory object
+    k = 0;
+    float *tmp_distance = new float[num_node * num_node];
+    for (i = 0; i < num_node; i++) {
+        for (j = 0; j < num_node; j++) {
+            tmp_distance[k++] = instance.distance[i][j];
+        }
+    }
+    distance_mem = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                  sizeof(float) * num_node * num_node, tmp_distance, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    // pheromone memory object
+    pheromone_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                   sizeof(float) * num_node * num_node, NULL, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    // total_info memory object
+    total_info_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                    sizeof(float) * num_node * num_node, NULL, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    // nn_list memory object
+    k = 0;
+    int *tmp_nn_list = new int[num_node * instance.nn_ls];
+    for (i = 0; i < num_node; i++) {
+        for (j = 0; j < instance.nn_ls; j++) {
+            tmp_nn_list[k++] = instance.nn_list[i][j];
+        }
+    }
+    nn_list_mem = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                 sizeof(int) * num_node * instance.nn_ls, tmp_nn_list, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    // seed memory
+    int *tmp_seed = new int[n_ants];
+    for (i = 0; i < n_ants; i++) {
+        tmp_seed[i] = (int)time(NULL) + i * (i + ran01(&instance.rnd_seed)) * n_ants;
+    }
+    seed_mem = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                              sizeof(int) * n_ants, tmp_seed, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    /*
+     * best-so-far solutions information memory, at most 4096 records
+     */
+    bsf_records_mem = clCreateBuffer(context, CL_MEM_READ_WRITE,
+                                     sizeof(BestSolutionInfo) * 4096, NULL, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    int tmp_num = 0;
+    num_bsf_mem = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                 sizeof(int) * 1, &tmp_num, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    /*
+     * store all `ras_rank` elite ants' ids
+     */
+    elite_ids_mem = clCreateBuffer(env.context, CL_MEM_READ_WRITE,
+                                   sizeof(int) * ras_ranks, NULL, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    /*
+     * FIXME: hard code `num_grps`
+     * especially for find_best_solution()
+     */
+    const int grp_size = env.maxWorkGroupSize / 4;
+    const int num_grps = ceil(1.0 * n_ants / grp_size);
+    best_result_val = clCreateBuffer(env.context, CL_MEM_READ_WRITE,
+                                     sizeof(float) * num_grps, NULL, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    best_result_idx = clCreateBuffer(env.context, CL_MEM_READ_WRITE,
+                                     sizeof(int) * num_grps, NULL, &err_num);
+    check_error(err_num, CL_SUCCESS);
+    
+    
+    delete[] tmp_demands;
+    delete[] tmp_distance;
+    delete[] tmp_seed;
+    delete[] tmp_nn_list;
+}
 
 
