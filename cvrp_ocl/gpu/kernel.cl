@@ -121,63 +121,6 @@ inline void print_single_route(__global float *distance, int *route, int route_s
     printf("\n--------\n");
 }
 
-/******* construct solutions *********/
-
-inline int choose_best_next(float *total_info_wrk, bool *candidate)
-{
-    int node, nxt_node;
-    float   value_best;
-    
-    nxt_node = NUM_NODE;
-    value_best = -1.0f;             /* values in total matrix are always >= 0.0 */
-    for (node = 0; node < NUM_NODE; node++) {
-        if(candidate[node] == TRUE) {
-            if (total_info_wrk[node] > value_best) {
-                nxt_node = node;
-                value_best = total_info_wrk[node];
-            }
-        }
-    }
-    return nxt_node;
-}
-
-/*
- * FUNCTION:    Choose for an ant probabilistically a next node among all
- * unvisited and possible nodes in the current node's candidate list.
- */
-inline int choose_and_move_to_next(int cur_node, int *rnd_seed,
-                                   float *total_info_wrk, bool *candidate)
-{
-    int i;
-    float partial_sum = 0.0f, sum_prob = 0.0f;
-    float rnd;
-    
-    for (i = 0 ; i < NUM_NODE; i++) {
-        sum_prob += candidate[i] * total_info_wrk[i];
-    }
-    
-    if (sum_prob <= 0.0f) {
-        return choose_best_next(total_info_wrk, candidate);
-        printf("oops! we have a bug!");
-    } else {
-        /* chose one according to the selection probabilities */
-        rnd = ran01(rnd_seed) * sum_prob;
-        
-        i = 0;
-        partial_sum = candidate[i] * total_info_wrk[i];
-        while (partial_sum <= rnd) {
-            i++;
-            partial_sum += candidate[i] * total_info_wrk[i];
-            if(i == NUM_NODE) {
-                // This may very rarely happen because of rounding if rnd is close to 1.
-                DEBUG(printf("omg! It happens!\n");)
-                return choose_best_next(total_info_wrk, candidate);
-            }
-        }
-        return i;
-    }
-}
-
 /******** local search ********/
 
 inline void two_opt_single_route(int *tour, int rbeg, int rend,
