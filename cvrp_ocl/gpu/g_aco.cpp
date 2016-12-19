@@ -37,6 +37,9 @@ g_ACO::g_ACO(OpenclEnv &env, Problem &instance): env(env), instance(instance)
     num_node = instance.num_node;
     n_ants = instance.n_ants;
     max_tour_sz = 2 * num_node;
+    
+    cs_grp_size = env.maxWorkGroupSize / 2;
+    cs_num_grps = n_ants;
 }
 
 g_ACO::~g_ACO()
@@ -109,6 +112,8 @@ void g_ACO::exit_aco(void)
         write_best_report(records[i]);
     }
     instance.best_so_far_time = records[num_bsf-1].time;
+    
+    free(records);
 }
 
 /*
@@ -137,12 +142,10 @@ void g_ACO::construct_solutions(void)
 {
     cl_int err_num;
     cl_event event;
-    const int grp_size = env.maxWorkGroupSize / 4;
-    const int num_grps = n_ants;
     
     // global work size must be divisable by the local work size
-    size_t global_work_size[1] = {static_cast<size_t>(grp_size * num_grps)};
-    size_t local_work_size[1] = {static_cast<size_t>(grp_size)};
+    size_t global_work_size[1] = {static_cast<size_t>(cs_grp_size * cs_num_grps)};
+    size_t local_work_size[1] = {static_cast<size_t>(cs_grp_size)};
     
     cl_kernel& construct_solution = env.get_kernel(kernel_t::construct_solution);
     
@@ -155,14 +158,14 @@ void g_ACO::construct_solutions(void)
     err_num |= clSetKernelArg(construct_solution, 6, sizeof(cl_mem), &total_info_mem);
     err_num |= clSetKernelArg(construct_solution, 7, sizeof(cl_mem), &solutions_mem);
     err_num |= clSetKernelArg(construct_solution, 8, sizeof(cl_mem), &solution_lens_mem);
-    err_num |= clSetKernelArg(construct_solution, 9, sizeof(float) * num_node, NULL);      // local memory for a colomn distance[*][0]
-    err_num |= clSetKernelArg(construct_solution, 10, sizeof(int) * num_node, NULL);       // local memory for demands
+    err_num |= clSetKernelArg(construct_solution, 9, sizeof(float) * num_node, NULL);       // local memory for a colomn distance[*][0]
+    err_num |= clSetKernelArg(construct_solution, 10, sizeof(int) * num_node, NULL);        // local memory for demands
     err_num |= clSetKernelArg(construct_solution, 11, sizeof(float) * num_node, NULL);      // local memory for a colomn distance[current][*]
     err_num |= clSetKernelArg(construct_solution, 12, sizeof(float) * num_node, NULL);      // local memory for a colomn total_info[current][*]
     err_num |= clSetKernelArg(construct_solution, 13, sizeof(bool) * num_node, NULL);       // local memory for visited
     err_num |= clSetKernelArg(construct_solution, 14, sizeof(bool) * num_node, NULL);       // local memory for candidate
-    err_num |= clSetKernelArg(construct_solution, 15, sizeof(float) * num_node, NULL);       // local memory for prob_selection
-    err_num |= clSetKernelArg(construct_solution, 16, sizeof(int) * num_node, NULL);         // local memory for scratch_idx
+    err_num |= clSetKernelArg(construct_solution, 15, sizeof(float) * num_node, NULL);      // local memory for prob_selection
+    err_num |= clSetKernelArg(construct_solution, 16, sizeof(int) * num_node, NULL);        // local memory for scratch_idx
     check_error(err_num, CL_SUCCESS);
 
     err_num = clEnqueueNDRangeKernel(env.commandQueue, construct_solution,
@@ -708,9 +711,8 @@ void g_ACO::create_memory_objects(void)
                                  sizeof(int) * num_node * instance.nn_ls, tmp_nn_list, &err_num);
     check_error(err_num, CL_SUCCESS);
     
-    // FIXME: hard code
     // seed memory
-    int seed_size = n_ants * (env.maxWorkGroupSize/4);
+    int seed_size = cs_grp_size * cs_num_grps;
     int *tmp_seed = new int[seed_size];
     for (i = 0; i < seed_size; i++) {
         tmp_seed[i] = (int)time(NULL) + (i%n_ants) * ((i%n_ants) + ran01(&instance.rnd_seed)) * n_ants;

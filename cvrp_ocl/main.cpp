@@ -60,37 +60,35 @@ char* parse_commandline (int argc, char *argv [])
  */
 int main(int argc, char *argv[])
 {
-    for (int did = 1; did <= 1; did++)
+    char *filename = parse_commandline(argc, argv);
+    sprintf(filename, "../dataset/CMT/CMT3.vrp");
+//        sprintf(filename, "../dataset/Golden/Golden_1.vrp");
+//        sprintf(filename, "../dataset/Li/Li_22.vrp");
+    
+    for (int ntry = 0 ; ntry < tries; ntry++)
     {
-        char *filename = parse_commandline(argc, argv);
-//        sprintf(filename, "../dataset/CMT/CMT%d.vrp", did);
-        sprintf(filename, "../dataset/Golden/Golden_1.vrp");
+        Problem *instance = new Problem(0);
         
-        for (int ntry = 0 ; ntry < tries; ntry++)
-        {
-            Problem *instance = new Problem(0);
-            
-            start_timers();
-            
-            read_instance_file(instance, filename);
-            init_problem(instance);
-            init_report(instance, ntry);
-            
-            printf("Initialization took %.10f seconds\n", elapsed_time(REAL));
+        start_timers();
+        
+        read_instance_file(instance, filename);
+        init_problem(instance);
+        init_report(instance, ntry);
+        
+        printf("Initialization took %.10f seconds\n", elapsed_time(REAL));
 
-            OpenclEnv cl_env(*instance);
-            g_ACO g_aco(cl_env, *instance);
+        OpenclEnv cl_env(*instance);
+        g_ACO g_aco(cl_env, *instance);
 
-            g_aco.init_aco();
-            while (!termination_condition(instance)) {
-                g_aco.run_aco_iteration();
-                instance->iteration++;
-            }
-            g_aco.exit_aco();
-            
-            exit_report(instance, ntry);
-            exit_problem(instance);
+        g_aco.init_aco();
+        while (!termination_condition(instance)) {
+            g_aco.run_aco_iteration();
+            instance->iteration++;
         }
+        g_aco.exit_aco();
+        
+        exit_report(instance, ntry);
+        exit_problem(instance);
     }
     return(0);
 }

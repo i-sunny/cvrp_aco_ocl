@@ -126,13 +126,13 @@ cl_command_queue OpenclEnv::createCommandQueue(cl_context context, cl_device_id 
     }
     
     // choose the first available device.
-    commandQueue = clCreateCommandQueue(context, devices[0], CL_QUEUE_PROFILING_ENABLE, NULL);
+    *device = devices[0];
+    commandQueue = clCreateCommandQueue(context, *device, CL_QUEUE_PROFILING_ENABLE, NULL);
     if (commandQueue == NULL) {
         cerr << "Failed to create commandQueue from device 0" << endl;
         return NULL;
     }
     
-    *device = devices[0];
     delete [] devices;
     
     return commandQueue;
