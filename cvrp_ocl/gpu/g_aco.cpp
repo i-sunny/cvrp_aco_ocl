@@ -38,7 +38,7 @@ g_ACO::g_ACO(OpenclEnv &env, Problem &instance): env(env), instance(instance)
     n_ants = instance.n_ants;
     max_tour_sz = 2 * num_node;
     
-    cs_grp_size = env.maxWorkGroupSize / 2;
+    cs_grp_size = env.maxWorkGroupSize / 4;
     cs_num_grps = n_ants;
 }
 

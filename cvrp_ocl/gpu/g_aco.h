@@ -46,8 +46,6 @@ private:
     int cs_grp_size;          // work-group size of construct_solutions kernel
     int cs_num_grps;          // work-group number of construct_solutions kernel
     
-    float cs_exec_time;
-    
     // memory objects
     cl_mem solutions_mem;
     cl_mem solution_lens_mem;    // tour length of each solution
