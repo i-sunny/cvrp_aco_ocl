@@ -43,6 +43,9 @@ private:
     int n_ants;               // number of ants
     int max_tour_sz;          // max tour size
     
+    int cs_grp_size;          // work-group size of construct_solutions kernel
+    int cs_num_grps;          // work-group number of construct_solutions kernel
+    
     // memory objects
     cl_mem solutions_mem;
     cl_mem solution_lens_mem;    // tour length of each solution
@@ -65,6 +68,7 @@ private:
     void find_best_solution(void);
     void update_best_so_far(void);
     void get_elites(void);
+    double event_runtime(cl_event& event);
 };
 
 #endif /* g_aco_h */

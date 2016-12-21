@@ -47,7 +47,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "YES"
-      customWorkingDirectory = "/Users/sunny/Desktop/cvrp_proj/src/cvrp_aco_ocl/cvrp_ocl"
+      customWorkingDirectory = "/Users/sunny/Desktop/task_parallel_ocl/cvrp_ocl"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"

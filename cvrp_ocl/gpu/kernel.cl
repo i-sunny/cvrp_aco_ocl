@@ -123,7 +123,7 @@ inline void print_single_route(__global float *distance, int *route, int route_s
 
 /******* construct solutions *********/
 
-inline int choose_best_next(float *total_info_wrk, bool *candidate)
+inline int choose_best_next(int current_node, __global float *total_info, bool *candidate)
 {
     int node, next_node;
     float   value_best;
@@ -132,9 +132,9 @@ inline int choose_best_next(float *total_info_wrk, bool *candidate)
     value_best = -1.0f;             /* values in total matrix are always >= 0.0 */
     for (node = 0; node < NUM_NODE; node++) {
         if(candidate[node] == TRUE) {
-            if (total_info_wrk[node] > value_best) {
+            if (total_info[current_node * NUM_NODE + node] > value_best) {
                 next_node = node;
-                value_best = total_info_wrk[node];
+                value_best = total_info[current_node * NUM_NODE + node];
             }
         }
     }
@@ -146,32 +146,32 @@ inline int choose_best_next(float *total_info_wrk, bool *candidate)
  * unvisited and possible nodes in the current node's candidate list.
  */
 inline int choose_and_move_to_next(int current_node, int *rnd_seed,
-                                   float *total_info_wrk, bool *candidate)
+                                   __global float *total_info, bool *candidate)
 {
     int i;
     float partial_sum = 0.0f, sum_prob = 0.0f;
     float rnd;
     
     for (i = 0 ; i < NUM_NODE; i++) {
-        sum_prob += candidate[i] * total_info_wrk[i];
+        sum_prob += candidate[i] * total_info[current_node * NUM_NODE + i];
     }
     
     if (sum_prob <= 0.0f) {
-        return choose_best_next(total_info_wrk, candidate);
+        return choose_best_next(current_node, total_info, candidate);
         printf("oops! we have a bug!");
     } else {
         /* chose one according to the selection probabilities */
         rnd = ran01(rnd_seed) * sum_prob;
         
         i = 0;
-        partial_sum = candidate[i] * total_info_wrk[i];
+        partial_sum = candidate[i] * total_info[current_node * NUM_NODE + i];
         while (partial_sum <= rnd) {
             i++;
-            partial_sum += candidate[i] * total_info_wrk[i];
+            partial_sum += candidate[i] * total_info[current_node * NUM_NODE + i];
             if(i == NUM_NODE) {
                 // This may very rarely happen because of rounding if rnd is close to 1.
                 DEBUG(printf("omg! It happens!\n");)
-                return choose_best_next(total_info_wrk, candidate);
+                return choose_best_next(current_node, total_info, candidate);
             }
         }
         return i;
@@ -417,15 +417,9 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
         int     visited_cnt;            /* count of visited node by this ant */
         int     path_load;              /* 单次从depot出发的送货量 */
         int     next_node, current_node;
-        int     i, candidate_cnt, step;
+        int     i, step;
+        bool    candidate_flag;
         float   path_dist, tour_dist;
-
-        /*-------------- private memory 优化 ---------------*/
-        /* 复制i行 distance[i][*] 为私有内存 */
-        float   dist_wrk[NUM_NODE];
-        
-        /* 复制i行 total_info[i][*] 为私有内存 */
-        float   total_info_wrk[NUM_NODE];
         
         /* 复制 rnd_seed[gid] 为私有内存 */
         int     rnd_seed = rnd_seeds[gid];
@@ -449,23 +443,21 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
         
         while (visited_cnt < NUM_NODE) {
             step++;
-            candidate_cnt = 0;
+            candidate_flag = FALSE;
             
             /* [优化-使用私有内存]
              * 将 distance[current_node][*] 一行的数据复制到私有内存， 提高读取速度
              */
             for(i = 0; i < NUM_NODE; i++) {
                 candidate[i] = FALSE;   // 初始化所有满足配送条件的点
-                dist_wrk[i] = distance[current_node * NUM_NODE + i];
-                total_info_wrk[i] = total_info[current_node * NUM_NODE + i];
             }
             
             for(i = 0; i < NUM_NODE; i++) {
                 if (visited[i] == FALSE &&
                     path_load + demands_wrk[i] <= capacity &&
-                    path_dist + (dist_wrk[i] + serv_time) + dist0_wrk[i] <= max_dist) {
+                    path_dist + (distance[current_node * NUM_NODE + i] + serv_time) + dist0_wrk[i] <= max_dist) {
                     candidate[i] = TRUE;
-                    candidate_cnt++;
+                    candidate_flag = TRUE;
                 }
             }
             
@@ -473,20 +465,20 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
              1)如果满足配送条件, 则蚂蚁回到depot，重新开始新的路径
              2）否则，选择下一个配送点
              */
-            if (candidate_cnt == 0) {
+            if (!candidate_flag) {
                 next_node = 0;
                 path_load = 0;
                 path_dist = 0;
             } else {
-                next_node = choose_and_move_to_next(current_node, &rnd_seed, total_info_wrk, candidate);
+                next_node = choose_and_move_to_next(current_node, &rnd_seed, total_info, candidate);
                 path_load += demands_wrk[next_node];
-                path_dist += dist_wrk[next_node] + serv_time;
+                path_dist += distance[current_node * NUM_NODE + next_node] + serv_time;
                 visited_cnt++;
             }
             visited[next_node] = TRUE;
             tour[step] = next_node;
+            tour_dist += distance[current_node * NUM_NODE + next_node];
             current_node = next_node;
-            tour_dist += dist_wrk[next_node];
         }
         
         // 最后回到depot
@@ -567,14 +559,14 @@ __kernel void update_best_so_far(__global bool *update_flag,
         __global int *best_tour, *iter_best_tour;
         
         /*
-         * after call kernel best_solution_phase_1(),
+         * call after kernel best_solution_phase_1(),
          * we have already got the iter-best solution
          */
         int idx = solutions[MAX_TOUR_SZ * (N_ANTS + 1)];
         iter_best_tour = solutions + MAX_TOUR_SZ * idx;
         int tour_size = iter_best_tour[MAX_TOUR_SZ - 1];
         float len = solution_lens[idx];
-
+        
         // update best-so-far solution
         if (gid < tour_size) {
             best_tour = solutions + MAX_TOUR_SZ * N_ANTS;
@@ -586,15 +578,15 @@ __kernel void update_best_so_far(__global bool *update_flag,
             }
         }
         
-        // record this best-so-far solution information
-        if(gid == 0) {
-            int pos = *num_bsf;
-            bsf_records[pos].iter = iteration;
-            bsf_records[pos].length = len;
-            bsf_records[pos].time = time;
-            DEBUG(printf("Best: iter: %d len: %f time: %.2f\n", iteration, len, time);)
-            *num_bsf = ++pos;
-        }
+        //        // record this best-so-far solution information
+        //        if(gid == 0) {
+        //            int pos = *num_bsf;
+        //            bsf_records[pos].iter = iteration;
+        //            bsf_records[pos].length = len;
+        //            bsf_records[pos].time = time;
+        //            DEBUG(printf("Best: iter: %d len: %f time: %.2f\n", iteration, len, time);)
+        //            *num_bsf = ++pos;
+        //        }
     }
 }
 
@@ -606,7 +598,7 @@ __kernel void update_best_so_far(__global bool *update_flag,
  */
 __kernel void best_solution_phase_0(int n_solutions, __global float* solution_lens,
                                     __local float* scratch_val, __local int* scratch_idx,
-                                   __global float* result_val,  __global int* result_idx)
+                                    __global float* result_val,  __global int* result_idx)
 {
     int gid = get_global_id(0);
     int lid = get_local_id(0);
@@ -654,7 +646,7 @@ __kernel void best_solution_phase_1(int num_grps,
                                     __global float *result_val, __global int *result_idx,
                                     __global bool *update_flag)
 {
-
+    
     float minval = result_val[0];
     int minidx = result_idx[0];
     
@@ -731,7 +723,7 @@ __kernel void get_elites(__global float *solution_lens, __global int *elite_ids)
 {
     int i, k, target;
     float help_b[N_ANTS], b;
-
+    
     // first, best-so-far solution
     elite_ids[0] = N_ANTS;
     
@@ -764,14 +756,14 @@ __kernel void pheromone_deposit(__global int *elite_ids,
     int lid = get_local_id(0);
     int grp_id = get_group_id(0);   // 0 to RAS_RANKS - 1
     int tid = elite_ids[grp_id];
-    int lsz = get_local_size(0);
+    int nloc = get_local_size(0);
     
     __global int *tour = solutions + tid * MAX_TOUR_SZ;
     int tour_size = tour[MAX_TOUR_SZ-1];
     float tour_length = solution_lens[tid];
     
     // [优化]局部内存优化
-    for(int i = lid; i < tour_size; i+=lsz) {
+    for(int i = lid; i < tour_size; i+=nloc) {
         tour_wrk[i] = tour[i];
     }
     barrier(CLK_LOCAL_MEM_FENCE);
@@ -779,8 +771,8 @@ __kernel void pheromone_deposit(__global int *elite_ids,
     // update pheromone int this tour
     int weight = RAS_RANKS - grp_id;
     float d_tau = 1.0f * weight / tour_length;
-
-    for(int i = lid; i < tour_size - 1; i+=lsz) {
+    
+    for(int i = lid; i < tour_size - 1; i+=nloc) {
         int j = tour_wrk[i];
         int h = tour_wrk[i+1];
         // !!多只蚂蚁同时对同一块内存写数据，需要原子操作
@@ -806,7 +798,7 @@ __kernel void compute_total_info(__global float *pheromone, __global float *tota
  * number of threads: 1
  */
 __kernel void update_best_so_far_to_device(__global int *from_tour, int tour_size, float tour_length,
-                                        __global int *solutions, __global float *solution_lens)
+                                           __global int *solutions, __global float *solution_lens)
 {
     __global int *best_tour = solutions + MAX_TOUR_SZ * N_ANTS;
     
@@ -817,6 +809,5 @@ __kernel void update_best_so_far_to_device(__global int *from_tour, int tour_siz
     
     solution_lens[N_ANTS] = tour_length;
 }
-
 
 
