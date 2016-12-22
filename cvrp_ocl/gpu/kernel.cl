@@ -123,55 +123,55 @@ inline void print_single_route(__global float *distance, int *route, int route_s
 
 /******* construct solutions *********/
 
-inline int choose_best_next(int current_node, __global float *total_info, bool *candidate)
+inline int choose_best_next(__local float *total_info_wrk, __local bool *candidate)
 {
-    int node, next_node;
+    int node, nxt_node;
     float   value_best;
     
-    next_node = NUM_NODE;
+    nxt_node = NUM_NODE;
     value_best = -1.0f;             /* values in total matrix are always >= 0.0 */
     for (node = 0; node < NUM_NODE; node++) {
         if(candidate[node] == TRUE) {
-            if (total_info[current_node * NUM_NODE + node] > value_best) {
-                next_node = node;
-                value_best = total_info[current_node * NUM_NODE + node];
+            if (total_info_wrk[node] > value_best) {
+                nxt_node = node;
+                value_best = total_info_wrk[node];
             }
         }
     }
-    return next_node;
+    return nxt_node;
 }
 
 /*
  * FUNCTION:    Choose for an ant probabilistically a next node among all
  * unvisited and possible nodes in the current node's candidate list.
  */
-inline int choose_and_move_to_next(int current_node, int *rnd_seed,
-                                   __global float *total_info, bool *candidate)
+inline int choose_and_move_to_next(int cur_node, int *rnd_seed,
+                                   __local float *total_info_wrk, __local bool *candidate)
 {
     int i;
     float partial_sum = 0.0f, sum_prob = 0.0f;
     float rnd;
     
     for (i = 0 ; i < NUM_NODE; i++) {
-        sum_prob += candidate[i] * total_info[current_node * NUM_NODE + i];
+        sum_prob += candidate[i] * total_info_wrk[i];
     }
     
     if (sum_prob <= 0.0f) {
-        return choose_best_next(current_node, total_info, candidate);
+        return choose_best_next(total_info_wrk, candidate);
         printf("oops! we have a bug!");
     } else {
         /* chose one according to the selection probabilities */
         rnd = ran01(rnd_seed) * sum_prob;
         
         i = 0;
-        partial_sum = candidate[i] * total_info[current_node * NUM_NODE + i];
+        partial_sum = candidate[i] * total_info_wrk[i];
         while (partial_sum <= rnd) {
             i++;
-            partial_sum += candidate[i] * total_info[current_node * NUM_NODE + i];
+            partial_sum += candidate[i] * total_info_wrk[i];
             if(i == NUM_NODE) {
                 // This may very rarely happen because of rounding if rnd is close to 1.
                 DEBUG(printf("omg! It happens!\n");)
-                return choose_best_next(current_node, total_info, candidate);
+                return choose_best_next(total_info_wrk, candidate);
             }
         }
         return i;
@@ -387,51 +387,37 @@ inline void two_opt_solution(int *tour, int tour_size, __global float *distance,
 __kernel void construct_solution(const int capacity, const float max_dist, const float serv_time,
                                  __global int *rnd_seeds, __global float *distance, __global int *demands,
                                  __global float *total_info, __global int *solutions, __global float *solution_lens,
-                                 __local float *dist0_wrk, __local int *demands_wrk)
+                                 __local float *dist0_wrk, __local int *demands_wrk,
+                                 __local float *dist_wrk, __local float *total_info_wrk,
+                                 __local bool *visited, __local bool *candidate)
 {
     //    DEBUG(printf("begin constructing solution\n");)
     int     gid = get_global_id(0);
-    int     lid = get_local_id(0);
-    int     nloc = get_local_size(0);
     
     /*-------------- local memory 优化 ---------------*/
-    /* 
-     * 复制第0列 distance[*][0] 为局部内存
-     * 注意：需要在 if(gid < N_ANTS) 之外，保证 all work-items execute barrier(),
-     * 否则将永久阻塞在此.
-     */
-    for(int i = lid; i < NUM_NODE; i +=nloc) {
-        dist0_wrk[i] = distance[i * NUM_NODE];
+    for(int i = 0; i < NUM_NODE; i++) {
+        dist0_wrk[i] = distance[i * NUM_NODE];       // distance[i][0]
         demands_wrk[i] = demands[i];
+        visited[i] = FALSE;                      // mark all nodes as non-visited
     }
-    barrier(CLK_LOCAL_MEM_FENCE);  // !! blocks until all work-items execute this function
     
     if (gid < N_ANTS)
     {
         __global int  *tour = solutions + MAX_TOUR_SZ * gid;
         int     tour_size;
         
-        bool    visited[NUM_NODE];
-        bool    candidate[NUM_NODE];
-        
         int     visited_cnt;            /* count of visited node by this ant */
-        int     path_load;              /* 单次从depot出发的送货量 */
-        int     next_node, current_node;
+        int     route_load;              /* 单次从depot出发的送货量 */
+        int     nxt_node, cur_node;
         int     i, step;
         bool    candidate_flag;
-        float   path_dist, tour_dist;
+        float   route_dist, tour_dist;
         
         /* 复制 rnd_seed[gid] 为私有内存 */
         int     rnd_seed = rnd_seeds[gid];
         
-    
-        /* Mark all nodes as unvisited */
-        for(i = 0; i < NUM_NODE; i++) {
-            visited[i] = FALSE;
-        }
-        
-        path_load = 0;
-        path_dist = 0;
+        route_load = 0;
+        route_dist = 0;
         tour_dist = 0;
         step = 0;
         
@@ -439,23 +425,22 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
         visited[0] = TRUE;
         tour[step] = 0;
         visited_cnt = 1;
-        current_node = 0;
+        cur_node = 0;
         
         while (visited_cnt < NUM_NODE) {
             step++;
             candidate_flag = FALSE;
             
-            /* [优化-使用私有内存]
-             * 将 distance[current_node][*] 一行的数据复制到私有内存， 提高读取速度
-             */
             for(i = 0; i < NUM_NODE; i++) {
-                candidate[i] = FALSE;   // 初始化所有满足配送条件的点
+                total_info_wrk[i] = total_info[cur_node * NUM_NODE + i];
+                dist_wrk[i] = distance[cur_node * NUM_NODE + i];
             }
             
             for(i = 0; i < NUM_NODE; i++) {
+                candidate[i] = FALSE;
                 if (visited[i] == FALSE &&
-                    path_load + demands_wrk[i] <= capacity &&
-                    path_dist + (distance[current_node * NUM_NODE + i] + serv_time) + dist0_wrk[i] <= max_dist) {
+                    route_load + demands_wrk[i] <= capacity &&
+                    route_dist + (dist_wrk[i] + serv_time) + dist0_wrk[i] <= max_dist) {
                     candidate[i] = TRUE;
                     candidate_flag = TRUE;
                 }
@@ -466,19 +451,19 @@ __kernel void construct_solution(const int capacity, const float max_dist, const
              2）否则，选择下一个配送点
              */
             if (!candidate_flag) {
-                next_node = 0;
-                path_load = 0;
-                path_dist = 0;
+                nxt_node = 0;
+                route_load = 0;
+                route_dist = 0;
             } else {
-                next_node = choose_and_move_to_next(current_node, &rnd_seed, total_info, candidate);
-                path_load += demands_wrk[next_node];
-                path_dist += distance[current_node * NUM_NODE + next_node] + serv_time;
+                nxt_node = choose_and_move_to_next(cur_node, &rnd_seed, total_info_wrk, candidate);
+                route_load += demands_wrk[nxt_node];
+                route_dist += dist_wrk[nxt_node] + serv_time;
                 visited_cnt++;
             }
-            visited[next_node] = TRUE;
-            tour[step] = next_node;
-            tour_dist += distance[current_node * NUM_NODE + next_node];
-            current_node = next_node;
+            visited[nxt_node] = TRUE;
+            tour[step] = nxt_node;
+            tour_dist += dist_wrk[nxt_node];
+            cur_node = nxt_node;
         }
         
         // 最后回到depot

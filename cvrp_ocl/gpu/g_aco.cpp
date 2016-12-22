@@ -49,8 +49,8 @@ g_ACO::g_ACO(OpenclEnv &env, Problem &instance): env(env), instance(instance)
     n_ants = instance.n_ants;
     max_tour_sz = 2 * num_node;
     
-    cs_grp_size = env.maxWorkGroupSize / 4;
-    cs_num_grps = (ceil)(1.0 * n_ants / cs_grp_size);
+    cs_grp_size = 1;
+    cs_num_grps = n_ants;
 
 }
 
@@ -201,6 +201,10 @@ void g_ACO::construct_solutions(void)
     err_num |= clSetKernelArg(construct_solution, 8, sizeof(cl_mem), &solution_lens_mem);
     err_num |= clSetKernelArg(construct_solution, 9, sizeof(float) * num_node, NULL);       // local memory for a colomn distance[*][0]
     err_num |= clSetKernelArg(construct_solution, 10, sizeof(int) * num_node, NULL);        // local memory for demands
+    err_num |= clSetKernelArg(construct_solution, 11, sizeof(float) * num_node, NULL);      // local memory for a colomn distance[current][*]
+    err_num |= clSetKernelArg(construct_solution, 12, sizeof(float) * num_node, NULL);      // local memory for a colomn total_info[current][*]
+    err_num |= clSetKernelArg(construct_solution, 13, sizeof(bool) * num_node, NULL);       // local memory for visited
+    err_num |= clSetKernelArg(construct_solution, 14, sizeof(bool) * num_node, NULL);       // local memory for candidate
     check_error(err_num, CL_SUCCESS);
     
     err_num = clEnqueueNDRangeKernel(env.commandQueue, construct_solution,
@@ -212,26 +216,26 @@ void g_ACO::construct_solutions(void)
     PROFILE(printf("\n[construct solutions] %f ms\n", event_runtime(event));)
     
     /* ------ debug check solutions ------- */
-    //    int *result = new int[max_tour_sz * n_ants];
-    //    err_num = clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE, 0,
-    //                                  sizeof(int) * max_tour_sz * n_ants, result, 0, NULL, NULL);
-    //    check_error(err_num, CL_SUCCESS);
-    //
-    //    int i, j, beg, end;
-    //    AntStruct *ant;
-    //    for (i = 0; i < n_ants; i++) {
-    //        ant = &instance.ants[i];
-    //        beg = i * max_tour_sz;
-    //        end = (i + 1) * max_tour_sz;
-    //        ant->tour_size = result[end - 1];
-    //        for (j = 0; j < ant->tour_size; j++) {
-    //            ant->tour[j] = result[j + beg];
-    //        }
-    //        ant->tour_length = compute_tour_length(&instance, ant->tour, ant->tour_size);
-    //        assert(check_solution(&instance, ant->tour, ant->tour_size));
-    //        print_solution(&instance, ant->tour, ant->tour_size);
-    //    }
-    //    delete[] result;
+//        int *result = new int[max_tour_sz * n_ants];
+//        err_num = clEnqueueReadBuffer(env.commandQueue, solutions_mem, CL_TRUE, 0,
+//                                      sizeof(int) * max_tour_sz * n_ants, result, 0, NULL, NULL);
+//        check_error(err_num, CL_SUCCESS);
+//    
+//        int i, j, beg, end;
+//        AntStruct *ant;
+//        for (i = 0; i < n_ants; i++) {
+//            ant = &instance.ants[i];
+//            beg = i * max_tour_sz;
+//            end = (i + 1) * max_tour_sz;
+//            ant->tour_size = result[end - 1];
+//            for (j = 0; j < ant->tour_size; j++) {
+//                ant->tour[j] = result[j + beg];
+//            }
+//            ant->tour_length = compute_tour_length(&instance, ant->tour, ant->tour_size);
+//            assert(check_solution(&instance, ant->tour, ant->tour_size));
+//            print_solution(&instance, ant->tour, ant->tour_size);
+//        }
+//        delete[] result;
 }
 
 /*
